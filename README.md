@@ -18,20 +18,20 @@ Serwer nasłuchuje na localhost, port 8888. Można łatwo zmienić w /server/app
 ### Linux / macOS
 
 ```bash
-cd server
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python main.py
+python main_server.py
+python main_client.py
 
 ### Windows
 
 ```powershell
-cd server
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python main.py
+python main_server.py
+python main_client.py
 
 ### Deaktywacja venv
 
