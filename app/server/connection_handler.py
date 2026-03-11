@@ -1,6 +1,6 @@
 from asyncio import StreamReader, StreamWriter
 
-from app.config import config
+from app.common.config import config
 
 
 async def handle_client(reader: StreamReader, writer: StreamWriter) -> None:
