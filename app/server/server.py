@@ -12,5 +12,7 @@ async def start_server() -> None:
         config.port,
     )
 
+    print(f"Server started on {config.host}:{config.port}")
+
     async with server:
         await server.serve_forever()

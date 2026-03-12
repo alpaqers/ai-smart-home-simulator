@@ -2,7 +2,7 @@
 
 Minimalny serwer TCP z `asyncio`.
 Na obecnym etapie umożliwia podstawową komunikację klient ↔ serwer przez TCP na localhost.
-Serwer nasłuchuje na localhost, port 8888. Można łatwo zmienić w /server/app/config.py
+Serwer nasłuchuje na localhost, port 9999. Można łatwo zmienić w /server/app/config.py
 
 ---
 
