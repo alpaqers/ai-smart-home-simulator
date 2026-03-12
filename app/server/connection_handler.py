@@ -1,6 +1,6 @@
 from asyncio import StreamReader, StreamWriter
 
-from app.config import config
+from app.common.config import config
 
 
 async def handle_client(reader: StreamReader, writer: StreamWriter) -> None:
@@ -10,8 +10,10 @@ async def handle_client(reader: StreamReader, writer: StreamWriter) -> None:
 
             if not data:
                 break
+            
+            print(f"Server recieved: {data}")
 
-            response = f"Server received: {data}\n\r"
+            response = f"Server received: {data}"
 
             writer.write(response.encode("utf-8"))
             await writer.drain()

@@ -1,6 +1,6 @@
 import asyncio
 
-from app.server import start_server
+from app.server.server import start_server
 
 
 def main() -> None:
