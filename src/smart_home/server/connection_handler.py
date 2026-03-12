@@ -1,6 +1,6 @@
 from asyncio import StreamReader, StreamWriter
 
-from app.common.config import config
+from smart_home.common.config import config
 
 
 async def handle_client(reader: StreamReader, writer: StreamWriter) -> None:

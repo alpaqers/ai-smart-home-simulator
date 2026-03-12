@@ -2,7 +2,7 @@
 
 Minimalny serwer TCP z `asyncio`.
 Na obecnym etapie umożliwia podstawową komunikację klient ↔ serwer przez TCP na localhost.
-Serwer nasłuchuje na localhost, port 9999. Można łatwo zmienić w /server/app/config.py
+Serwer nasłuchuje na localhost, port 9999. Można łatwo zmienić w `src/smart_home/common/config.py`
 
 ---
 
@@ -21,8 +21,9 @@ Serwer nasłuchuje na localhost, port 9999. Można łatwo zmienić w /server/app
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python main_server.py
-python main_client.py
+python src/main_server.py
+python src/main_client.py
+```
 
 ### Windows
 
@@ -30,10 +31,12 @@ python main_client.py
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python main_server.py
-python main_client.py
+python src/main_server.py
+python src/main_client.py
+```
 
 ### Deaktywacja venv
 
 ```bash
 deactivate
+```
