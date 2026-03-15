@@ -5,7 +5,7 @@ import os
 @dataclass(frozen=True)
 class ServerConfig:
     host: str = os.getenv("SERVER_HOST", "127.0.0.1")
-    port: int = int(os.getenv("SERVER_PORT", "8888"))
+    port: int = int(os.getenv("SERVER_PORT", "9999"))
     #tutaj w przyszlosci bedzie dodana obsluga ramki pakietu
     buffer_size: int = int(os.getenv("SERVER_BUFFER_SIZE", "1024"))
 
