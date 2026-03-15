@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x16proto/v1/message.proto\x12\x0csmarthome.v1\"\xc6\x01\n\x11\x44\x65viceStateChange\x12\x11\n\tdevice_id\x18\x01 \x01(\x05\x12\x11\n\ttimestamp\x18\x02 \x01(\x03\x12\x43\n\nparameters\x18\x03 \x03(\x0b\x32/.smarthome.v1.DeviceStateChange.ParametersEntry\x12\x13\n\x0b\x64\x65vice_type\x18\x04 \x01(\x05\x1a\x31\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x16proto/v1/message.proto\x12\x0csmarthome.v1\"\xc6\x01\n\x11\x44\x65viceStateChange\x12\x11\n\tdevice_id\x18\x01 \x01(\x05\x12\x11\n\ttimestamp\x18\x02 \x01(\x03\x12\x43\n\nparameters\x18\x03 \x03(\x0b\x32/.smarthome.v1.DeviceStateChange.ParametersEntry\x12\x13\n\x0b\x64\x65vice_type\x18\x04 \x01(\x05\x1a\x31\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xc7\x01\n\x11\x44\x65viceStateUpdate\x12\x11\n\tdevice_id\x18\x01 \x01(\x05\x12\x11\n\ttimestamp\x18\x02 \x01(\x03\x12\x14\n\x0c\x63ommand_type\x18\x03 \x01(\x05\x12\x43\n\nparameters\x18\x04 \x03(\x0b\x32/.smarthome.v1.DeviceStateUpdate.ParametersEntry\x1a\x31\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"X\n\x0e\x44\x65viceResponse\x12\x11\n\tdevice_id\x18\x01 \x01(\x05\x12\x11\n\ttimestamp\x18\x02 \x01(\x03\x12\x0f\n\x07success\x18\x03 \x01(\x08\x12\x0f\n\x07message\x18\x04 \x01(\tb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,8 +33,16 @@ if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_DEVICESTATECHANGE_PARAMETERSENTRY']._loaded_options = None
   _globals['_DEVICESTATECHANGE_PARAMETERSENTRY']._serialized_options = b'8\001'
+  _globals['_DEVICESTATEUPDATE_PARAMETERSENTRY']._loaded_options = None
+  _globals['_DEVICESTATEUPDATE_PARAMETERSENTRY']._serialized_options = b'8\001'
   _globals['_DEVICESTATECHANGE']._serialized_start=41
   _globals['_DEVICESTATECHANGE']._serialized_end=239
   _globals['_DEVICESTATECHANGE_PARAMETERSENTRY']._serialized_start=190
   _globals['_DEVICESTATECHANGE_PARAMETERSENTRY']._serialized_end=239
+  _globals['_DEVICESTATEUPDATE']._serialized_start=242
+  _globals['_DEVICESTATEUPDATE']._serialized_end=441
+  _globals['_DEVICESTATEUPDATE_PARAMETERSENTRY']._serialized_start=190
+  _globals['_DEVICESTATEUPDATE_PARAMETERSENTRY']._serialized_end=239
+  _globals['_DEVICERESPONSE']._serialized_start=443
+  _globals['_DEVICERESPONSE']._serialized_end=531
 # @@protoc_insertion_point(module_scope)

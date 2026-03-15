@@ -1,4 +1,4 @@
-import message_pb2
+from proto.v1 import message_pb2
 
 msg = message_pb2.DeviceStateChange() #nowa pusta wiadomosc
 
