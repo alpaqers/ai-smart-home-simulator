@@ -5,3 +5,7 @@ __pycache__/
 .ruff_cache/
 .idea/
 .vscode/
+# protobuf generated files
+*_pb2.py
+*_pb2.pyi
+*_pb2_grpc.py
