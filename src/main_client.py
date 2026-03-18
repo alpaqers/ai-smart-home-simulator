@@ -1,6 +1,6 @@
 import asyncio
 
-from src.smart_home.client.client import start_client
+from smart_home.client.client import start_client
 
 
 def main() -> None:

@@ -2,8 +2,8 @@ import asyncio
 
 from asyncio import StreamReader, StreamWriter
 
-from src.smart_home.common.config import config
-from src.smart_home.client.connection_handler import handle_connection
+from smart_home.common.config import config
+from smart_home.client.connection_handler import handle_connection
 
 
 async def start_client() -> None:

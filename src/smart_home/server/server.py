@@ -1,7 +1,7 @@
 import asyncio
 
-from src.smart_home.common.config import config
-from src.smart_home.server.connection_handler import handle_client
+from smart_home.common.config import config
+from smart_home.server.connection_handler import handle_client
 
 
 async def start_server() -> None:
