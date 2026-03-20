@@ -5,7 +5,7 @@ from asyncio import StreamReader, StreamWriter
 from app.common.config import config
 
 
-async def handle_connection(reader: StreamReader, writer: StreamWriter) -> None:
+async def handle_connection(reader: StreamReader, writer: StreamWriter, device_type: str) -> None:
     try:
         while True:
             message = input("Client > ")
