@@ -1,11 +1,13 @@
 import asyncio
 
 from smart_home.client.client import start_client
+from smart_home.client.views.cli import parse_args
 
 
 def main() -> None:
+    args = parse_args()
     try:
-        asyncio.run(start_client())
+        asyncio.run(start_client(args))
     except KeyboardInterrupt:
         print("\nClient stopped")
 
