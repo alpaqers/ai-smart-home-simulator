@@ -3,6 +3,7 @@ import argparse
 from asyncio import StreamReader, StreamWriter
 from ..common.config import config
 from ..client.controllers.connection_handler import ConnectionHandler
+from ..client.controllers.connection_handler import handle_connection
 
 async def start_client(args: argparse.Namespace) -> None:
     reader: StreamReader
@@ -12,11 +13,10 @@ async def start_client(args: argparse.Namespace) -> None:
     port = args.port or config.port
 
     reader, writer = await asyncio.open_connection(host, port)
-
     print(f"Connected to server {host}:{port} as '{args.device_type}'")
 
     handler = ConnectionHandler(reader, writer, args.device_type)
-    await handler.start()
+    await handle_connection(reader, writer, args.device_type)
 
     try:
         while True:

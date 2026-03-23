@@ -1,8 +1,14 @@
+from __future__ import annotations
+
 import asyncio
+import base64
 import contextlib
 import uuid
 
 from asyncio import StreamReader, StreamWriter
+from ...proto.v1 import message_pb2
+from time import time
+
 
 
 class ConnectionHandler:
@@ -84,7 +90,7 @@ class ConnectionHandler:
             if not future.done():
                 future.set_exception(exc)
 
-
+'''
 async def handle_connection(reader: StreamReader, writer: StreamWriter, device_type: str) -> None:
     handler = ConnectionHandler(reader, writer, device_type)
     await handler.start()
@@ -99,3 +105,36 @@ async def handle_connection(reader: StreamReader, writer: StreamWriter, device_t
             print(f"Server > {response}")
     finally:
         await handler.stop()
+'''
+
+async def handle_connection(reader: StreamReader, writer: StreamWriter, device_type: str) -> None:
+    handler = ConnectionHandler(reader, writer, device_type)
+    await handler.start()
+
+    try:
+        req = message_pb2.DeviceRegisterReq()
+        req.device_type = device_type
+        req.timestamp = int(time())
+
+        req.capabilities[""] = ""
+        req_bytes = req.SerializeToString()
+        payload_b64 = base64.b64encode(req_bytes).decode("utf-8")
+
+        print(f"Register request sent (Type: {device_type}, ID: {req.device_id})...")
+
+        response_b64 = await handler.send_and_wait(payload_b64)
+        resp_bytes = base64.b64decode(response_b64)
+        resp = message_pb2.DeviceRegisterResp.FromString(resp_bytes)
+
+        if resp.success:
+            print(f"Device registered successfully (At {resp.timestamp})")
+        else:
+            print(f"Registration failed: {resp.cause}")
+
+    except TimeoutError:
+        print("Server failed to respond")
+    except Exception as e:
+        print(f"Critical connection error: {e}")
+    finally:
+        await handler.stop()
+        print("Client stopped")
