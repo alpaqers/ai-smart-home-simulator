@@ -1,6 +1,7 @@
 from asyncio import StreamReader, StreamWriter
 
 from smart_home.common.config import config
+from smart_home.server.message_handler import parse_envelope, handle_message
 
 
 async def handle_client(reader: StreamReader, writer: StreamWriter) -> None:
@@ -11,12 +12,8 @@ async def handle_client(reader: StreamReader, writer: StreamWriter) -> None:
             if not data:
                 break
             
-            print(f"Server recieved: {data}")
-
-            response = f"Server received: {data}"
-
-            writer.write(response.encode("utf-8"))
-            await writer.drain()
+            envelope = parse_envelope(data)
+            handle_message(envelope)
     finally:
         writer.close()
         await writer.wait_closed()

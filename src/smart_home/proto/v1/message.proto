@@ -22,3 +22,11 @@ message DeviceResponse {
 	bool success = 3;
 	string message = 4;
 }
+
+message Envelope {
+	oneof payload {
+		DeviceStateChange device_state_change = 1;
+		DeviceStateUpdate device_state_update = 2;
+		DeviceResponse device_response = 3;
+	}
+}
