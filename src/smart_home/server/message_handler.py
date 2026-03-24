@@ -1,4 +1,7 @@
+from asyncio import StreamWriter
+
 from smart_home.proto.v1 import message_pb2
+from smart_home.server.events import DeviceStateChangeEvent, DeviceResponseEvent, DeviceRegisterEvent
 
 
 def parse_envelope(data: bytes) -> message_pb2.Envelope:
@@ -16,6 +19,29 @@ def build_envelope(message) -> bytes:
     elif isinstance(message, message_pb2.DeviceResponse):
         envelope.device_response.CopyFrom(message)
     return envelope.SerializeToString()
+
+
+def msg_to_event(
+    envelope: message_pb2.Envelope, writer: StreamWriter
+) -> DeviceStateChangeEvent | DeviceResponseEvent | DeviceRegisterEvent | None:
+    msg_type = envelope.WhichOneof("payload")
+
+    if msg_type == "device_state_change":
+        return DeviceStateChangeEvent(
+            device_id=envelope.device_state_change.device_id,
+            writer=writer,
+        )
+    elif msg_type == "device_response":
+        return DeviceResponseEvent(
+            device_id=envelope.device_response.device_id,
+            writer=writer,
+        )
+    elif msg_type == "device_register_req":
+        return DeviceRegisterEvent(
+            device_id=envelope.device_register_req.device_id,
+            writer=writer,
+        )
+    return None
 
 
 def handle_message(envelope: message_pb2.Envelope):

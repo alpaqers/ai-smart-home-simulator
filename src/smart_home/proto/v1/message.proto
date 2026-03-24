@@ -23,10 +23,26 @@ message DeviceResponse {
 	string message = 4;
 }
 
+message DeviceRegisterReq {
+	int32 device_id = 1;
+	string device_type = 2;
+	map<string, string> capabilities = 3;
+	map<string, string> device_state = 4;
+	int64 timestamp = 5;
+}
+
+message DeviceRegisterResp {
+	int32 device_id = 1;
+	bool success = 2;
+	int64 timestamp = 3;
+	optional string cause = 4;
+}
+
 message Envelope {
 	oneof payload {
 		DeviceStateChange device_state_change = 1;
 		DeviceStateUpdate device_state_update = 2;
 		DeviceResponse device_response = 3;
+		DeviceRegisterReq device_register_req = 4;
 	}
 }
