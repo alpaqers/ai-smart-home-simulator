@@ -27,19 +27,32 @@ def msg_to_event(
     msg_type = envelope.WhichOneof("payload")
 
     if msg_type == "device_state_change":
+        msg = envelope.device_state_change
         return DeviceStateChangeEvent(
-            device_id=envelope.device_state_change.device_id,
+            device_id=msg.device_id,
             writer=writer,
+            timestamp=msg.timestamp,
+            device_type=msg.device_type,
+            parameters=dict(msg.parameters),
         )
     elif msg_type == "device_response":
+        msg = envelope.device_response
         return DeviceResponseEvent(
-            device_id=envelope.device_response.device_id,
+            device_id=msg.device_id,
             writer=writer,
+            timestamp=msg.timestamp,
+            success=msg.success,
+            message=msg.message,
         )
     elif msg_type == "device_register_req":
+        msg = envelope.device_register_req
         return DeviceRegisterEvent(
-            device_id=envelope.device_register_req.device_id,
+            device_id=msg.device_id,
             writer=writer,
+            device_type=msg.device_type,
+            capabilities=dict(msg.capabilities),
+            device_state=dict(msg.device_state),
+            timestamp=msg.timestamp,
         )
     return None
 
