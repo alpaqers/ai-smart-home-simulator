@@ -1,6 +1,6 @@
-from models.containers import DeviceStorage
-from models.device_registry import add_device_to_storage
-from controllers.device_factory import create_lamp, create_thermometer, create_sensor, create_ac
+from ..models.containers import DeviceStorage
+from ..models.device_registry import add_device_to_storage
+from ..controllers.device_factory import create_lamp, create_thermometer, create_sensor, create_ac
 
 
 def device_registry(device_id: int, device_type: str, capabilities: dict, device_state: dict, storage: DeviceStorage) -> tuple[bool, str]:

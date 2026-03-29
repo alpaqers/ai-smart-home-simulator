@@ -1,6 +1,6 @@
 from asyncio import StreamReader, StreamWriter
 
-from smart_home.common.config import config
+from ..common.config import config
 
 
 async def handle_client(reader: StreamReader, writer: StreamWriter) -> None:
@@ -10,7 +10,7 @@ async def handle_client(reader: StreamReader, writer: StreamWriter) -> None:
 
             if not data:
                 break
-            
+
             print(f"Server recieved: {data}")
 
             response = f"Server received: {data}"
