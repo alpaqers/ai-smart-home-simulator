@@ -7,7 +7,7 @@ from dataclasses import dataclass
 class RegisteredDevice:
     device_id: int
     writer: StreamWriter
-    device_type: int | str
+    device_type: str
     capabilities: dict[str, str]
     device_state: dict[str, str]
     timestamp: int
