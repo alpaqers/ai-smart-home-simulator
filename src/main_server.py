@@ -4,10 +4,7 @@ from smart_home.server.server import start_server
 
 
 def main() -> None:
-    try:
-        asyncio.run(start_server())
-    except KeyboardInterrupt:
-        print("\nServer stopped")
+    asyncio.run(start_server())
 
 
 if __name__ == "__main__":
