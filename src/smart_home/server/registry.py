@@ -19,29 +19,12 @@ class DeviceRegistry:
         self._device_id_by_writer: dict[int, int] = {}
         self._lock = asyncio.Lock()
 
-    async def register(
-        self,
-        device_id: int,
-        writer: StreamWriter,
-        device_type: int | str,
-        capabilities: dict[str, str],
-        device_state: dict[str, str],
-        timestamp: int,
-    ) -> None:
+    async def register(self, device: RegisteredDevice) -> None:
         async with self._lock:
-            entry = RegisteredDevice(
-                device_id=device_id,
-                writer=writer,
-                device_type=device_type,
-                capabilities=capabilities,
-                device_state=device_state,
-                timestamp=timestamp,
-            )
+            self._devices_by_id[device.device_id] = device
+            self._device_id_by_writer[id(device.writer)] = device.device_id
 
-            self._devices_by_id[device_id] = entry
-            self._device_id_by_writer[id(writer)] = device_id
-
-            print(f"[DeviceRegistry] Registered device {device_id}")
+            print(f"[DeviceRegistry] Registered device {device.device_id}")
 
     async def get_by_device_id(self, device_id: int) -> RegisteredDevice | None:
         async with self._lock:
