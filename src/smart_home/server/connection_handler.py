@@ -30,6 +30,6 @@ async def handle_client(reader: StreamReader, writer: StreamWriter, registry: De
             print(f"[handle_client] Error: {e}")
 
     finally:
-        registry.unregister_by_writer(writer)
+        await registry.unregister_by_writer(writer)
         writer.close()
         await writer.wait_closed()

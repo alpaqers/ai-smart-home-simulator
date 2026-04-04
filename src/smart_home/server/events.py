@@ -9,7 +9,6 @@ class DeviceStateChangeEvent:
     timestamp: int
     device_type: int
     parameters: dict[str, str]
-    envelope: message_pb2.Envelope
 
 
 @dataclass
@@ -19,7 +18,6 @@ class DeviceResponseEvent:
     timestamp: int
     success: bool
     message: str
-    envelope: message_pb2.Envelope
 
 
 @dataclass
@@ -30,4 +28,3 @@ class DeviceRegisterEvent:
     capabilities: dict[str, str]
     device_state: dict[str, str]
     timestamp: int
-    envelope: message_pb2.Envelope

@@ -18,6 +18,13 @@ def build_envelope(message) -> bytes:
         envelope.device_state_update.CopyFrom(message)
     elif isinstance(message, message_pb2.DeviceResponse):
         envelope.device_response.CopyFrom(message)
+    elif isinstance(message, message_pb2.DeviceRegisterReq):
+        envelope.device_register_req.CopyFrom(message)
+    elif isinstance(message, message_pb2.DeviceRegisterResp):
+        envelope.device_register_resp.CopyFrom(message)
+    else:
+        raise ValueError(f"Unsupported message type: {type(message).__name__}")
+    
     return envelope.SerializeToString()
 
 
