@@ -1,6 +1,6 @@
 import asyncio
 
-from ..common.config import config
+from ..common.config import (config)
 from ..server.connection_handler import handle_client
 
 

@@ -16,6 +16,7 @@ class ConnectionHandler:
         self._write_lock = asyncio.Lock()
         self._reader_task: asyncio.Task[None] | None = None
         self._running = False
+        self.event_callback = None
 
     async def start(self) -> None:
         if self._running:
@@ -58,7 +59,7 @@ class ConnectionHandler:
         except asyncio.TimeoutError as exc:
             raise TimeoutError(f"No response received within {timeout:.2f}s") from exc
         finally:
-            self._pending.pop(request_id, None)
+            await self._pending.pop(request_id, None)
 
     async def _read_loop(self) -> None:
         try:
@@ -75,6 +76,10 @@ class ConnectionHandler:
                 future = self._pending.get(request_id)
                 if future is not None and not future.done():
                     future.set_result(response)
+
+                else:
+                    if self.event_callback:
+                        await self.event_callback(response)
         except asyncio.CancelledError:
             raise
         finally:
