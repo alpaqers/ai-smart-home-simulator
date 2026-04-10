@@ -4,7 +4,7 @@ from asyncio import StreamReader, StreamWriter
 from ..common.config import config
 from ..client.controllers.connection_handler import ConnectionHandler
 from ..client.controllers.message_sender import register_device
-from ..client.controllers.event_handler import EventHandler #added
+from ..client.controllers.event_handler import EventHandler
 
 async def start_client(args: argparse.Namespace) -> None:
     reader: StreamReader
@@ -17,12 +17,16 @@ async def start_client(args: argparse.Namespace) -> None:
     print(f"Connected to server {host}:{port} as '{args.device_type}'")
 
     bus = EventHandler()
-    bus.start()
+    '''
+    TO BE IMPLEMENTED
+    Subscribing the SubHandlers
+    '''
+    await bus.start()
 
-    handler = ConnectionHandler(reader, writer, args.device_type)
-    handler.event_callback = bus.put_event 
+    connection_handler = ConnectionHandler(reader, writer, args.device_type)
+    connection_handler.event_callback = bus.put_event
     await register_device(reader, writer, args.device_type)
-    await handler.start()
+    await connection_handler.start()
 
     try:
         while True:
@@ -30,8 +34,8 @@ async def start_client(args: argparse.Namespace) -> None:
             if message.lower() in {"exit", "quit"}:
                 break
 
-            response = await handler.send_and_wait(message)
+            response = await connection_handler.send_and_wait(message)
             print(f"Server > {response}")
     finally:
-        await handler.stop()
-        bus.stop()
+        await connection_handler.stop()
+        await bus.stop()
