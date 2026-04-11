@@ -30,12 +30,3 @@ class RegisterProcessor:
         await event.writer.drain()
 
         print(f"[RegisterProcessor] Device {event.device_id} registered")
-
-class StateChangeProcessor:
-    async def handle(self, event) -> None:
-        print(f"[StateChangeProcessor] Received state change from device {event.device_id}")
-
-
-class ResponseProcessor:
-    async def handle(self, event) -> None:
-        print(f"[ResponseProcessor] Received response from device {event.device_id}")
