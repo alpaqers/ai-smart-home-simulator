@@ -49,3 +49,14 @@ class DeviceRegistry:
     async def is_registered(self, device_id: int) -> bool:
         async with self._lock:
             return device_id in self._devices_by_id
+
+    async def update_state(self, device_id: int, parameters: dict[str, str], timestamp: int) -> bool:
+        async with self._lock:
+            device = self._devices_by_id.get(device_id)
+
+            if device is None:
+                return False
+
+            device.device_state.update(parameters)
+            device.timestamp = timestamp
+            return True

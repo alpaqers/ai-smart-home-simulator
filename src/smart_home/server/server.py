@@ -21,7 +21,7 @@ async def start_server() -> None:
     bus = EventBus()
 
     register_processor = RegisterProcessor(registry)
-    state_change_processor = StateChangeProcessor()
+    state_change_processor = StateChangeProcessor(registry)
     response_processor = ResponseProcessor()
 
     await bus.subscribe(DeviceRegisterEvent, register_processor.handle)
