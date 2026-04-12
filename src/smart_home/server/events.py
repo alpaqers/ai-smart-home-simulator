@@ -4,8 +4,9 @@ from smart_home.proto.v1 import message_pb2
 
 @dataclass
 class DeviceStateChangeEvent:
-    device_id: int
+    device_id: str
     writer: StreamWriter
+    request_id: str
     timestamp: int
     device_type: int
     parameters: dict[str, str]
@@ -13,8 +14,9 @@ class DeviceStateChangeEvent:
 
 @dataclass
 class DeviceResponseEvent:
-    device_id: int
+    device_id: str
     writer: StreamWriter
+    request_id: str
     timestamp: int
     success: bool
     message: str
@@ -22,8 +24,9 @@ class DeviceResponseEvent:
 
 @dataclass
 class DeviceRegisterEvent:
-    device_id: int
+    device_id: str
     writer: StreamWriter
+    request_id: str
     device_type: str
     capabilities: dict[str, str]
     device_state: dict[str, str]

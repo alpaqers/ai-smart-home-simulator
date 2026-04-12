@@ -13,21 +13,21 @@ from smart_home.server.message_handler import handle_message, parse_envelope, bu
 
 def test_handle_message_recognizes_state_change():
     envelope = message_pb2.Envelope()
-    envelope.device_state_change.device_id = 1
+    envelope.device_state_change.device_id = "1"
 
     assert handle_message(envelope) == "device_state_change"
 
 
 def test_handle_message_recognizes_device_response():
     envelope = message_pb2.Envelope()
-    envelope.device_response.device_id = 2
+    envelope.device_response.device_id = "2"
 
     assert handle_message(envelope) == "device_response"
 
 
 def test_full_flow_device_state_change():
     msg = message_pb2.DeviceStateChange()
-    msg.device_id = 1
+    msg.device_id = "1"
     msg.parameters["temperature"] = "24.6"
 
     data = build_envelope(msg)
@@ -39,7 +39,7 @@ def test_full_flow_device_state_change():
 
 def test_full_flow_device_response():
     msg = message_pb2.DeviceResponse()
-    msg.device_id = 2
+    msg.device_id = "2"
     msg.success = True
     msg.message = "Light turned on"
 

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 @dataclass
 class RegisteredDevice:
-    device_id: int
+    device_id: str
     writer: StreamWriter
     device_type: str
     capabilities: dict[str, str]
@@ -15,8 +15,8 @@ class RegisteredDevice:
 
 class DeviceRegistry:
     def __init__(self) -> None:
-        self._devices_by_id: dict[int, RegisteredDevice] = {}
-        self._device_id_by_writer: dict[int, int] = {}
+        self._devices_by_id: dict[str, RegisteredDevice] = {}
+        self._device_id_by_writer: dict[int, str] = {}
         self._lock = asyncio.Lock()
 
     async def register(self, device: RegisteredDevice) -> None:
@@ -26,11 +26,11 @@ class DeviceRegistry:
 
             print(f"[DeviceRegistry] Registered device {device.device_id}")
 
-    async def get_by_device_id(self, device_id: int) -> RegisteredDevice | None:
+    async def get_by_device_id(self, device_id: str) -> RegisteredDevice | None:
         async with self._lock:
             return self._devices_by_id.get(device_id)
 
-    async def get_writer(self, device_id: int) -> StreamWriter | None:
+    async def get_writer(self, device_id: str) -> StreamWriter | None:
         async with self._lock:
             entry = self._devices_by_id.get(device_id)
             return entry.writer if entry else None
@@ -46,6 +46,6 @@ class DeviceRegistry:
             self._devices_by_id.pop(device_id, None)
             print(f"[DeviceRegistry] Unregistered device {device_id}")
 
-    async def is_registered(self, device_id: int) -> bool:
+    async def is_registered(self, device_id: str) -> bool:
         async with self._lock:
             return device_id in self._devices_by_id

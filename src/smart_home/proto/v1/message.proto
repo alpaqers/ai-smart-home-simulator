@@ -3,28 +3,28 @@ syntax = "proto3";
 package smarthome.v1;
 
 message DeviceStateChange {
-	int32 device_id = 1;
+	string device_id = 1;
 	int64 timestamp = 2;
 	map<string, string> parameters = 3;
 	int32 device_type = 4;
 }
 
 message DeviceStateUpdate {
-	int32 device_id = 1;
+	string device_id = 1;
 	int64 timestamp = 2;
 	int32 command_type = 3;
 	map<string, string> parameters = 4;
 }
 
 message DeviceResponse {
-	int32 device_id = 1;
+	string device_id = 1;
 	int64 timestamp = 2;
 	bool success = 3;
 	string message = 4;
 }
 
 message DeviceRegisterReq {
-	int32 device_id = 1;
+	string device_id = 1;
 	string device_type = 2;
 	map<string, string> capabilities = 3;
 	map<string, string> device_state = 4;
@@ -32,7 +32,7 @@ message DeviceRegisterReq {
 }
 
 message DeviceRegisterResp {
-	int32 device_id = 1;
+	string device_id = 1;
 	bool success = 2;
 	int64 timestamp = 3;
 	optional string cause = 4;
