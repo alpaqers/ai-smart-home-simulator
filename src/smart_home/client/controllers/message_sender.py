@@ -1,15 +1,10 @@
 from __future__ import annotations
 
-from asyncio import StreamReader, StreamWriter
-
 from .connection_handler import ConnectionHandler
 from .message_coder import decode_register_response, encode_register_request
 
 
-async def register_device(reader: StreamReader, writer: StreamWriter, device_type: str) -> None:
-    handler = ConnectionHandler(reader, writer, device_type)
-    await handler.start()
-
+async def register_device(handler: ConnectionHandler, device_type: str) -> int | None:
     try:
         payload_b64, req = encode_register_request(device_type)
         print(f"Register request sent (Type: {device_type}, ID: {req.device_id})...")
@@ -19,13 +14,14 @@ async def register_device(reader: StreamReader, writer: StreamWriter, device_typ
 
         if resp.success:
             print(f"Device registered successfully (At {resp.timestamp})")
+            return resp.device_id
         else:
             print(f"Registration failed: {resp.cause}")
+            return None
 
     except TimeoutError:
         print("Server failed to respond")
+        return None
     except Exception as e:
         print(f"Critical connection error: {e}")
-    finally:
-        await handler.stop()
-        print("Client stopped")
+        return None

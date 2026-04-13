@@ -25,8 +25,11 @@ async def start_client(args: argparse.Namespace) -> None:
 
     connection_handler = ConnectionHandler(reader, writer, args.device_type)
     connection_handler.event_callback = bus.put_event
-    await register_device(reader, writer, args.device_type)
     await connection_handler.start()
+
+    registered_device_id = await register_device(connection_handler, args.device_type)
+    if registered_device_id is None:
+        print("Registration did not complete.")
 
     try:
         while True:
