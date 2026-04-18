@@ -1,4 +1,4 @@
-from ..models.devices import Device
+from ..models.device import Device
 
 
 def create_lamp(device_id: int, device_type: str, capabilities: dict, device_state: dict) -> Device:

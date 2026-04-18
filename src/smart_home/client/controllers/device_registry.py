@@ -1,4 +1,4 @@
-from models.devices import Device
+from models.device import Device
 from models.containers import DeviceStorage
 
 
