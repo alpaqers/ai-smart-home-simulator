@@ -27,23 +27,20 @@ def decode_register_response(response_b64: str) -> message_pb2.DeviceRegisterRes
     return message_pb2.DeviceRegisterResp.FromString(resp_bytes)
 
 
-def encode_state_change(device_id: int, parameters: dict[str, str], device_type: int) -> str:
+def encode_state_change(device_id: int, parameters: dict[str, str], device_type: str) -> str:
     """
     Encodes a DeviceStateChange message into a base64 string.
     
     Args:
         device_id: The unique identifier of the device.
-        parameters: A dictionary containing the state changes (e.g., {"power": "ON"}).
-        device_type: Integer ID representing the type of the device.
-        
-    Returns:
-        A base64 encoded string of the serialized protobuf message.
+        parameters: A dictionary containing the state changes.
+        device_type: String representing the type of the device (np. "lampka").
     """
     msg = message_pb2.DeviceStateChange()
 
     msg.device_id = device_id
     msg.timestamp = int(time())
-    msg.device_type = device_type
+    msg.device_type = device_type #string
     
     if parameters:
         msg.parameters.update(parameters)
