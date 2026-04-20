@@ -521,18 +521,170 @@ Konteneryzacja całego środowiska:
 
 ---
 
-# Device Registry
+# Registry i Register Processor
 
-- rejestracja urządzeń w systemie
-- kontrola unikalności `device_id`
+<div class="card">
 
-## Zmiany
+Skupiłem się na mechanizmie **rejestracji urządzeń po stronie serwera** oraz utrzymaniu powiązania między:
+- `device_id`
+- aktywnym połączeniem `StreamWriter`
+- metadanymi urządzenia i jego aktualnym stanem
 
-- blokada duplikatów
-- obsługa wyjątków przy rejestracji
-- `response.success` zgodny z wynikiem operacji
+</div>
 
-<div class="author-tag">Łukasz · serwer</div>
+<div class="two-columns">
+<div class="card">
+
+### `registry.py`
+- przechowuje aktywne urządzenia w pamięci
+- mapuje `device_id` → urządzenie
+- mapuje `writer` → `device_id`
+- pozwala odczytać aktywne połączenie urządzenia
+
+</div>
+<div class="card">
+
+### `RegisterProcessor`
+- odbiera `DeviceRegisterEvent`
+- tworzy wpis `RegisteredDevice`
+- zapisuje go w registry
+- odsyła `DeviceRegisterResp`
+
+</div>
+</div>
+
+<div class="author-tag">Pawel · serwer</div>
+
+---
+
+# Mapowanie w dwie strony
+
+<div class="two-columns">
+<div class="card">
+
+### `device_id → device`
+Potrzebne, aby:
+- znaleźć urządzenie po jego ID
+- pobrać `writer`
+- odczytać stan i metadane
+
+</div>
+<div class="card">
+
+### `writer → device_id`
+Potrzebne, aby:
+- obsłużyć rozłączenie
+- szybko ustalić, które urządzenie było na tym połączeniu
+- usunąć wpis z registry
+
+</div>
+</div>
+
+<div class="diagram">
+<span class="diagram-box">device_id</span>
+<span class="arrow">⇄</span>
+<span class="diagram-box">writer / session</span>
+</div>
+
+<div class="highlight">
+
+Jednokierunkowe mapowanie wystarcza do wysyłki, ale nie wystarcza do poprawnego cleanupu po zamknięciu połączenia.
+
+</div>
+
+<div class="author-tag">Pawel · serwer</div>
+
+---
+
+# Device Registry — co rozwiązałem
+
+<div class="two-columns">
+
+<div class="card">
+
+### Główny problem
+Po odebraniu wiadomości z urządzenia serwer musi wiedzieć:
+- czy urządzenie jest już zarejestrowane
+- z którym połączeniem jest powiązane
+- gdzie zapisać jego stan i metadane
+
+</div>
+
+<div class="card">
+
+### Zaimplementowane elementy
+- `register(device)`
+- `unregister_by_writer(writer)`
+- `get_by_device_id(device_id)`
+- `get_writer(device_id)`
+
+</div>
+
+<div class="diagram">
+<span class="diagram-box">device_id</span>
+<span class="arrow">→</span>
+<span class="diagram-box">RegisteredDevice</span>
+<span class="arrow">→</span>
+<span class="diagram-box">writer / state / capabilities</span>
+</div>
+
+<div class="author-tag">Pawel · serwer</div>
+
+---
+
+# Fragment kodu — mapowanie połączenia
+
+```python
+async def register(self, device: RegisteredDevice) -> None:
+    async with self._lock:
+        self._devices_by_id[device.device_id] = device
+        self._device_id_by_writer[id(device.writer)] = device.device_id
+
+async def unregister_by_writer(self, writer: StreamWriter) -> None:
+    async with self._lock:
+        device_id = self._device_id_by_writer.pop(id(writer), None)
+        if device_id is not None:
+            self._devices_by_id.pop(device_id, None)
+```
+
+<div class="highlight">
+
+Dzięki temu serwer potrafi:
+- znaleźć połączenie po `device_id`
+- usunąć urządzenie po zamknięciu socketu
+
+</div>
+
+<div class="author-tag">Pawel · serwer</div>
+
+---
+
+# Register Processor — przepływ rejestracji
+
+<div class="diagram">
+<span class="diagram-box">DeviceRegisterReq</span>
+<span class="arrow">→</span>
+<span class="diagram-box">Envelope</span>
+<span class="arrow">→</span>
+<span class="diagram-box">DeviceRegisterEvent</span>
+<span class="arrow">→</span>
+<span class="diagram-box">RegisterProcessor</span>
+<span class="arrow">→</span>
+<span class="diagram-box">DeviceRegistry</span>
+</div>
+
+<div class="card">
+
+### Co robi procesor
+1. odbiera event rejestracji z Event Bus  
+2. buduje obiekt `RegisteredDevice`  
+3. zapisuje urządzenie w `DeviceRegistry`  
+4. tworzy odpowiedź `DeviceRegisterResp`  
+5. wysyła odpowiedź do klienta przez zapisany `writer`
+
+</div>
+
+<div class="author-tag">Pawel · serwer</div>
 
 ---
 
