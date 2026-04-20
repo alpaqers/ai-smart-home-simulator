@@ -12,7 +12,7 @@ from smart_home.proto.v1 import message_pb2
 
 msg = message_pb2.DeviceStateChange() #nowa pusta wiadomosc
 
-msg.device_id = "1"
+msg.device_id = 1
 msg.device_type = 2
 msg.parameters["temperature"] = "24.6"
 
