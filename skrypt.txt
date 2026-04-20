@@ -1,0 +1,81 @@
+SKRYPT PREZENTACJI
+(slajdy wstępne + MVP + przejście do implementacji)
+
+===================================================
+SLAJD 1 — Tytuł
+===================================================
+Przedstawimy nasz projekt — AI Smart Home Simulator, realizowany w ramach współpracy z Nokią.
+
+===================================================
+SLAJD 2 — Temat
+===================================================
+Nasz projekt to środowisko symulujące system smart home. Mamy dwie aplikacje — klient, który symuluje urządzenia domowe, i serwer, który odbiera dane z urządzeń, przetwarza i podejmuje decyzje przy pomocy gotowego modelu AI. Zdecydowaliśmy się na symulator zamiast realnych urządzeń, żeby skupić się na aspektach projektowych i architektonicznych.
+
+===================================================
+SLAJD 3 — Podejście
+===================================================
+Komunikacja między klientem a serwerem odbywa się po TCP z użyciem Protobufa do serializacji. Po stronie klienta zastosowaliśmy wzorzec MVC — Model trzyma dane, View to interfejs CLI, Controller odpowiada za logikę. Po stronie serwera mamy Event Pipeline — EventBus z wzorcem Observer, do którego podpinają się niezależne procesory. Dzięki temu każdy procesor działa osobno, co daje nam modularność.
+
+===================================================
+SLAJD 4 — Narzędzia
+===================================================
+Krótko o narzędziach — piszemy w Pythonie z asyncio, komunikacja po TCP, serializacja Protobufem. Całość konteneryzujemy Dockerem. Do testów pytest, CLI przez argparse, konfiguracja w plikach TOML. Pracujemy na Gicie, organizujemy się Scrumem.
+
+===================================================
+SLAJD 5 — MVP (sekcja)
+===================================================
+Teraz opowiemy o tym, co ustaliliśmy jako nasze MVP — czyli minimalny produkt, który chcemy dostarczyć.
+
+===================================================
+SLAJD 6 — MVP: Komunikacja
+===================================================
+Podstawą jest dwukierunkowa komunikacja TCP z Protobufem. Klient rejestruje się w serwerze, serwer mapuje device_id na konkretny socket, i od tego momentu mogą wymieniać wiadomości w obie strony — klient wysyła zmiany stanu, serwer może wysłać aktualizacje.
+
+===================================================
+SLAJD 7 — MVP: Dane i logi
+===================================================
+Jeśli chodzi o dane — serwer przechowuje stan obecny urządzenia plus historię zmian, a klient tylko stan obecny. Wszystko trzymamy in-memory, bez zewnętrznej bazy danych. Dodatkowo logujemy zmiany stanów oraz odebrane i wysłane wiadomości.
+
+===================================================
+SLAJD 8 — MVP: Event Pipeline
+===================================================
+Po stronie serwera mamy Event Pipeline. Wiadomość przychodzi po TCP, trafia na EventBus, który rozsyła ją do procesorów, które się zasubskrybowały na dany typ eventu. W MVP mamy trzy procesory — do rejestracji, zmiany stanu i logowania.
+
+===================================================
+SLAJD 9 — MVP: Klient
+===================================================
+Po stronie klienta — możemy dodawać i modyfikować urządzenia w runtime przez CLI. Klient tworzy wiadomości DeviceStateChange, obsługuje zdarzenia przez EventHandler i SubHandlers, a DeviceStorage przechowuje lokalny stan urządzeń.
+
+===================================================
+[?] SLAJD 10 — MVP: Podział tasków (Nie pamietam o co chodzilo na spotkaniu, ale jest cos takiego w notatkach)
+===================================================
+Podzieliliśmy pracę na dwa fronty — klient i serwer. Po stronie klienta: interface, obsługa zdarzeń, storage. Po stronie serwera: procesory i wysyłanie wiadomości. Scheduler i system tasków celowo zostawiliśmy poza MVP.
+
+===================================================
+SLAJD 11 — Nasza implementacja (sekcja)
+===================================================
+Teraz pokażemy co konkretnie zrobiliśmy — zaczniemy od rzeczy wspólnych, potem serwer, potem klient.
+
+===================================================
+SLAJD 12 — Władek mówi
+===================================================
+
+===================================================
+SLAJDY 13-16 — Łukasz mówi
+===================================================
+
+===================================================
+SLAJD 17-18 — Władek mówi
+===================================================
+
+===================================================
+SLAJDY 19-20 — Karolina mówi
+===================================================
+
+===================================================
+SLAJDY 21-24 — Ania mówi
+===================================================
+
+===================================================
+SLAJDY 25-28 — Adrian mówi
+===================================================
