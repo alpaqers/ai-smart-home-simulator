@@ -398,7 +398,7 @@ Zmiany stanów · odebrane wiadomości · wysłane wiadomości
 
 ### Funkcjonalności
 - Dodawanie i modyfikacja urządzeń **w runtime**
-- Front interface — tworzenie kopert (wiadomości), modyfikacja
+- Tworzenie kopert (wiadomości), modyfikacja
 - `DeviceStateChange` — informowanie serwera o zmianach
 
 </div>
@@ -414,7 +414,7 @@ Zmiany stanów · odebrane wiadomości · wysłane wiadomości
 
 ---
 
-# MVP — Podział tasków
+# Podział na zadania
 
 <div class="two-columns">
 <div class="card">
@@ -430,6 +430,7 @@ Zmiany stanów · odebrane wiadomości · wysłane wiadomości
 <div class="card">
 
 ### Serwer
+- EventBus
 - `RegisterReq` processor
 - `DeviceStateChange` processor
 - `Log` processor
@@ -532,6 +533,77 @@ Konteneryzacja całego środowiska:
 - `response.success` zgodny z wynikiem operacji
 
 <div class="author-tag">Łukasz · serwer</div>
+
+---
+
+# Integracja protobuf i format transportowy
+
+<div class="highlight">
+
+Obsługa wiadomości po stronie serwera — od bajtów na gnieździe do eventu w Event Bus.
+
+</div>
+
+<div class="author-tag">Amelia · serwer</div>
+
+---
+
+# Protokół (`message.proto`)
+
+- Nowe typy: `DeviceStateUpdate`, `DeviceResponse`
+- `Envelope` z mechanizmem `oneof` — jedna koperta rozpoznaje typ po polu `payload`
+
+```proto
+message Envelope {
+    oneof payload {
+        DeviceStateChange device_state_change = 1;
+        DeviceStateUpdate device_state_update = 2;
+        DeviceResponse device_response = 3;
+        DeviceRegisterReq device_register_req = 4;
+        DeviceRegisterResp device_register_resp = 5;
+    }
+}
+```
+
+<div class="author-tag">Amelia · serwer</div>
+
+---
+
+# Format transportowy: `request_id|base64(protobuf)\n`
+
+Każda ramka zawiera identyfikator korelujący zapytanie z odpowiedzią, wiadomość protobuf zakodowaną w Base64 i znak nowej linii jako separator — obie strony czytają strumień `readline()`-em.
+
+## Funkcje w `message_handler.py`
+
+- `decode_wire_message(raw)` — rozdziela po `|`, dekoduje Base64 → bajty protobuf
+- `encode_wire_message(request_id, proto_bytes)` — pakuje odpowiedź w ten sam format
+
+<div class="author-tag">Amelia · serwer</div>
+
+---
+
+# Pipeline: od bajtów do eventu
+
+1. `parse_envelope(data)` — bajty → obiekt `Envelope`
+2. `msg_to_event(envelope, writer, request_id)` — na podstawie `WhichOneof("payload")` tworzy event
+3. Event trafia do Event Bus, procesor odsyła odpowiedź przez `build_envelope` + `encode_wire_message`
+
+## Events (`events.py`)
+
+- `DeviceRegisterEvent`, `DeviceStateChangeEvent`, `DeviceResponseEvent`
+- Wspólne pola: `device_id`, `writer`, `request_id`, `timestamp`
+
+<div class="author-tag">Amelia · serwer</div>
+
+---
+
+# Testy
+
+- `test_registration.py` — mapowanie eventu, rejestracja, wire format w odpowiedzi
+- `test_message_handler.py` — pełny flow encode/decode
+- `test_protobuf_pytest.py` — serializacja wszystkich typów wiadomości
+
+<div class="author-tag">Amelia · serwer</div>
 
 ---
 
