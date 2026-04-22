@@ -14,16 +14,16 @@ from smart_home.server.processors import (
     StateChangeProcessor,
 )
 from smart_home.server.registry import DeviceRegistry
-from ..common.config import (config)
-from ..server.connection_handler import handle_client
+from smart_home.server.state_history import DeviceStateHistory
 
 
 async def start_server() -> None:
     registry = DeviceRegistry()
+    history = DeviceStateHistory()
     bus = EventBus()
 
     register_processor = RegisterProcessor(registry)
-    state_change_processor = StateChangeProcessor()
+    state_change_processor = StateChangeProcessor(registry, history)
     response_processor = ResponseProcessor()
 
     await bus.subscribe(DeviceRegisterEvent, register_processor.handle)
