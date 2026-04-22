@@ -6,7 +6,7 @@ message DeviceStateChange {
 	int32 device_id = 1;
 	int64 timestamp = 2;
 	map<string, string> parameters = 3;
-	int32 device_type = 4;
+	string device_type = 4;
 }
 
 message DeviceStateUpdate {

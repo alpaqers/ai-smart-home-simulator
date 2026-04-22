@@ -1,6 +1,6 @@
 from smart_home.proto.v1 import message_pb2
 from smart_home.server.events import DeviceRegisterEvent
-from smart_home.server.message_handler import build_envelope
+from smart_home.server.message_handler import build_envelope, encode_wire_message
 from smart_home.server.registry import DeviceRegistry, RegisteredDevice
 
 
@@ -25,8 +25,9 @@ class RegisterProcessor:
         response.success = True
         response.timestamp = event.timestamp
 
-        data = build_envelope(response)
-        event.writer.write(data)
+        proto_bytes = build_envelope(response)
+        wire_data = encode_wire_message(event.request_id, proto_bytes)
+        event.writer.write(wire_data)
         await event.writer.drain()
 
         print(f"[RegisterProcessor] Device {event.device_id} registered")
