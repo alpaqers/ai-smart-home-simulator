@@ -3,6 +3,7 @@ from asyncio import StreamReader, StreamWriter
 from smart_home.server.message_handler import parse_envelope, msg_to_event, decode_wire_message
 from smart_home.server.event_bus import EventBus
 from smart_home.server.registry import DeviceRegistry
+from ..common.config import config
 
 
 async def handle_client(reader: StreamReader, writer: StreamWriter, registry: DeviceRegistry, bus: EventBus) -> None:
@@ -12,6 +13,8 @@ async def handle_client(reader: StreamReader, writer: StreamWriter, registry: De
 
             if not data:
                 break
+
+            print(f"Server recieved: {data}")
 
             request_id, proto_bytes = decode_wire_message(data)
 

@@ -14,6 +14,8 @@ from smart_home.server.processors import (
     StateChangeProcessor,
 )
 from smart_home.server.registry import DeviceRegistry
+from ..common.config import (config)
+from ..server.connection_handler import handle_client
 
 
 async def start_server() -> None:
