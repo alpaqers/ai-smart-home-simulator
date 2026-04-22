@@ -10,6 +10,8 @@ if str(SRC_DIR) not in sys.path:
 
 
 from smart_home.proto.v1 import message_pb2
+from smart_home.client.controllers import message_coder
+import base64
 import time
 
 TIMESTAMP = int(time.time())
@@ -64,3 +66,33 @@ def test_device_response_serialization():
     assert received.success == True
     assert received.timestamp == TIMESTAMP
     assert received.message == "Swiatlo zapalone o 16:00"
+
+
+def test_create_state_change_message_from_coder():
+    msg = message_coder.create_state_change_message(
+        device_id=7,
+        parameters={"power": "ON", "brightness": "80"},
+        device_type=1,
+    )
+
+    assert msg.device_id == 7
+    assert msg.device_type == 1
+    assert msg.parameters["power"] == "ON"
+    assert msg.parameters["brightness"] == "80"
+    assert msg.timestamp > 0
+
+
+def test_encode_state_change_from_coder_roundtrip():
+    payload_b64 = message_coder.encode_state_change(
+        device_id=8,
+        parameters={"temperature": "24.5"},
+        device_type=2,
+    )
+
+    payload = base64.b64decode(payload_b64)
+    decoded = message_pb2.DeviceStateChange.FromString(payload)
+
+    assert decoded.device_id == 8
+    assert decoded.device_type == 2
+    assert decoded.parameters["temperature"] == "24.5"
+    assert decoded.timestamp > 0

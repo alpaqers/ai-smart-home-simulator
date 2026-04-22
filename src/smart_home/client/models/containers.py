@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Dict
-from .devices import Device
+from .device import Device
 
 @dataclass
 class DeviceStorage:

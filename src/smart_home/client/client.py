@@ -5,6 +5,8 @@ from ..common.config import config
 from ..client.controllers.connection_handler import ConnectionHandler
 from ..client.controllers.message_sender import register_device
 from ..client.controllers.event_handler import EventHandler
+from ..client.controllers.event_router import ClientEventRouter
+from ..client.models.containers import DeviceStorage
 
 async def start_client(args: argparse.Namespace) -> None:
     reader: StreamReader
@@ -17,16 +19,18 @@ async def start_client(args: argparse.Namespace) -> None:
     print(f"Connected to server {host}:{port} as '{args.device_type}'")
 
     bus = EventHandler()
-    '''
-    TO BE IMPLEMENTED
-    Subscribing the SubHandlers
-    '''
+    storage = DeviceStorage()
+    router = ClientEventRouter(storage)
+    bus.subscribe(router.handle)
     await bus.start()
 
     connection_handler = ConnectionHandler(reader, writer, args.device_type)
     connection_handler.event_callback = bus.put_event
-    await register_device(reader, writer, args.device_type)
     await connection_handler.start()
+
+    registered_device_id = await register_device(connection_handler, args.device_type)
+    if registered_device_id is None:
+        print("Registration did not complete.")
 
     try:
         while True:

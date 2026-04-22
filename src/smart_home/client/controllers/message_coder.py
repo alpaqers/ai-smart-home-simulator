@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import binascii
 
 from time import time
 from ...proto.v1 import message_pb2
@@ -49,3 +50,26 @@ def encode_state_change(device_id: int, parameters: dict[str, str], device_type:
     payload_b64 = base64.b64encode(payload_bytes).decode("utf-8")
     
     return payload_b64
+
+
+def decode_state_update_message(response_b64: str) -> message_pb2.DeviceStateUpdate | None:
+    """Decode base64 payload to DeviceStateUpdate when possible.
+
+    Returns None when the payload is not valid base64/protobuf state update data.
+    """
+    try:
+        payload = base64.b64decode(response_b64, validate=True)
+    except (binascii.Error, ValueError):
+        return None
+
+    msg = message_pb2.DeviceStateUpdate()
+    try:
+        msg.ParseFromString(payload)
+    except Exception:
+        return None
+
+    has_content = bool(msg.parameters) or msg.command_type != 0 or msg.timestamp != 0
+    if msg.device_id <= 0 or not has_content:
+        return None
+
+    return msg
