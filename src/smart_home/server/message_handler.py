@@ -1,7 +1,20 @@
+import base64
 from asyncio import StreamWriter
 
 from smart_home.proto.v1 import message_pb2
 from smart_home.server.events import DeviceStateChangeEvent, DeviceResponseEvent, DeviceRegisterEvent
+
+
+def decode_wire_message(raw: bytes) -> tuple[str, bytes]:
+    line = raw.decode("utf-8").strip()
+    request_id, payload_b64 = line.split("|", 1)
+    proto_bytes = base64.b64decode(payload_b64)
+    return request_id, proto_bytes
+
+
+def encode_wire_message(request_id: str, proto_bytes: bytes) -> bytes:
+    payload_b64 = base64.b64encode(proto_bytes).decode("utf-8")
+    return f"{request_id}|{payload_b64}\n".encode("utf-8")
 
 
 def parse_envelope(data: bytes) -> message_pb2.Envelope:
@@ -29,7 +42,7 @@ def build_envelope(message) -> bytes:
 
 
 def msg_to_event(
-    envelope: message_pb2.Envelope, writer: StreamWriter
+    envelope: message_pb2.Envelope, writer: StreamWriter, request_id: str = ""
 ) -> DeviceStateChangeEvent | DeviceResponseEvent | DeviceRegisterEvent | None:
     msg_type = envelope.WhichOneof("payload")
 
@@ -38,6 +51,7 @@ def msg_to_event(
         return DeviceStateChangeEvent(
             device_id=msg.device_id,
             writer=writer,
+            request_id=request_id,
             timestamp=msg.timestamp,
             device_type=msg.device_type,
             parameters=dict(msg.parameters),
@@ -47,6 +61,7 @@ def msg_to_event(
         return DeviceResponseEvent(
             device_id=msg.device_id,
             writer=writer,
+            request_id=request_id,
             timestamp=msg.timestamp,
             success=msg.success,
             message=msg.message,
@@ -56,6 +71,7 @@ def msg_to_event(
         return DeviceRegisterEvent(
             device_id=msg.device_id,
             writer=writer,
+            request_id=request_id,
             device_type=msg.device_type,
             capabilities=dict(msg.capabilities),
             device_state=dict(msg.device_state),

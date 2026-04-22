@@ -4,7 +4,7 @@ import pytest
 
 from smart_home.proto.v1 import message_pb2
 from smart_home.server.events import DeviceRegisterEvent
-from smart_home.server.message_handler import msg_to_event, parse_envelope
+from smart_home.server.message_handler import msg_to_event, parse_envelope, decode_wire_message
 from smart_home.server.processors import RegisterProcessor
 from smart_home.server.registry import DeviceRegistry, RegisteredDevice
 
@@ -22,10 +22,11 @@ def test_msg_to_event_maps_device_register_req() -> None:
     req.device_state["humidity"] = "45"
     req.timestamp = 123456789
 
-    event = msg_to_event(envelope, writer)
+    event = msg_to_event(envelope, writer, "req-123")
 
     assert isinstance(event, DeviceRegisterEvent)
     assert event.device_id == 1
+    assert event.request_id == "req-123"
     assert event.writer is writer
     assert event.device_type == "thermostat"
     assert event.capabilities == {"mode": "heat", "fan": "auto"}
@@ -88,6 +89,7 @@ async def test_register_processor_registers_device_and_sends_response() -> None:
     event = DeviceRegisterEvent(
         device_id=7,
         writer=writer,
+        request_id="req-456",
         device_type="thermostat",
         capabilities={"mode": "cool"},
         device_state={"temperature": "19"},
@@ -108,9 +110,11 @@ async def test_register_processor_registers_device_and_sends_response() -> None:
     writer.write.assert_called_once()
     writer.drain.assert_awaited_once()
 
-    sent_data = writer.write.call_args.args[0]
-    sent_envelope = parse_envelope(sent_data)
+    sent_wire_data = writer.write.call_args.args[0]
+    sent_request_id, sent_proto_bytes = decode_wire_message(sent_wire_data)
+    sent_envelope = parse_envelope(sent_proto_bytes)
 
+    assert sent_request_id == "req-456"
     assert sent_envelope.WhichOneof("payload") == "device_register_resp"
     assert sent_envelope.device_register_resp.device_id == 7
     assert sent_envelope.device_register_resp.success is True
