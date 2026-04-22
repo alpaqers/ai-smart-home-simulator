@@ -9,25 +9,35 @@ class RegisterProcessor:
         self._registry = registry
 
     async def handle(self, event: DeviceRegisterEvent) -> None:
-        device = RegisteredDevice(
-            device_id=event.device_id,
-            writer=event.writer,
-            device_type=event.device_type,
-            capabilities=event.capabilities,
-            device_state=event.device_state,
-            timestamp=event.timestamp,
-        )
+        try:
+            device = RegisteredDevice(
+                device_id=event.device_id,
+                writer=event.writer,
+                device_type=event.device_type,
+                capabilities=event.capabilities,
+                device_state=event.device_state,
+                timestamp=event.timestamp,
+            )
 
-        await self._registry.register(device)
+            await self._registry.register(device)
 
-        response = message_pb2.DeviceRegisterResp()
-        response.device_id = event.device_id
-        response.success = True
-        response.timestamp = event.timestamp
+            response = message_pb2.DeviceRegisterResp()
+            response.device_id = event.device_id
+            response.success = True
+            response.timestamp = event.timestamp
 
-        proto_bytes = build_envelope(response)
-        wire_data = encode_wire_message(event.request_id, proto_bytes)
-        event.writer.write(wire_data)
-        await event.writer.drain()
+        except Exception as e:
+            response = message_pb2.DeviceRegisterResp()
+            response.device_id = event.device_id
+            response.success = False
+            response.timestamp = event.timestamp
+            response.error_message = str(e)
+
+        try:
+            data = build_envelope(response)
+            event.writer.write(data)
+            await event.writer.drain()
+        except Exception as e:
+            pass
 
         print(f"[RegisterProcessor] Device {event.device_id} registered")
