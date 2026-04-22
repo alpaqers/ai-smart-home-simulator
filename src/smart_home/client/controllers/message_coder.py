@@ -28,40 +28,23 @@ def decode_register_response(response_b64: str) -> message_pb2.DeviceRegisterRes
     return message_pb2.DeviceRegisterResp.FromString(resp_bytes)
 
 
-def create_state_change_message(
-    device_id: int,
-    parameters: dict[str, str],
-    device_type: int,
-) -> message_pb2.DeviceStateChange:
-    """Create a DeviceStateChange protobuf object with timestamp and parameters."""
-    msg = message_pb2.DeviceStateChange()
-    msg.device_id = device_id
-    msg.timestamp = int(time())
-    msg.device_type = device_type
-
-    if parameters:
-        msg.parameters.update(parameters)
-
-    return msg
-
-
-def encode_state_change(device_id: int, parameters: dict[str, str], device_type: int) -> str:
+def encode_state_change(device_id: int, parameters: dict[str, str], device_type: str) -> str:
     """
     Encodes a DeviceStateChange message into a base64 string.
     
     Args:
         device_id: The unique identifier of the device.
-        parameters: A dictionary containing the state changes (e.g., {"power": "ON"}).
-        device_type: Integer ID representing the type of the device.
-        
-    Returns:
-        A base64 encoded string of the serialized protobuf message.
+        parameters: A dictionary containing the state changes.
+        device_type: String representing the type of the device (np. "lampka").
     """
-    msg = create_state_change_message(
-        device_id=device_id,
-        parameters=parameters,
-        device_type=device_type,
-    )
+    msg = message_pb2.DeviceStateChange()
+
+    msg.device_id = device_id
+    msg.timestamp = int(time())
+    msg.device_type = device_type #string
+    
+    if parameters:
+        msg.parameters.update(parameters)
 
     payload_bytes = msg.SerializeToString()
     payload_b64 = base64.b64encode(payload_bytes).decode("utf-8")

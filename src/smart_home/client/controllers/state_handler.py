@@ -10,20 +10,19 @@ if TYPE_CHECKING:
 async def notify_state_change(
     device: Device, 
     new_params: dict[str, str], 
-    handler: ConnectionHandler,
-    device_type_id: int
+    handler: ConnectionHandler
 ) -> None:
     """
     Neutral handler for device state changes.
-    It receives the numeric device_type_id from the caller (e.g., CLI or Factory),
-    keeping this controller independent of specific device names.
+    Uses device.device_type (str) to keep the controller independent 
+    of hardcoded ID mappings.
     """
     device.device_state.update(new_params)
 
     payload_b64 = message_coder.encode_state_change(
         device_id=device.device_id,
         parameters=new_params,
-        device_type=device_type_id
+        device_type=device.device_type
     )
     
     try:
