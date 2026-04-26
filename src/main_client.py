@@ -1,7 +1,6 @@
 import asyncio
-import argparse
 
-from src.smart_home.client.views.cli import parse_args
+from controllers.arg_parser import parse_args
 
 from smart_home.client.client import start_client
 
