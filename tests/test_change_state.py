@@ -53,6 +53,7 @@ async def test_state_change_processor_appends_record_when_device_registered() ->
     event = DeviceStateChangeEvent(
         device_id=1,
         writer=writer,
+        request_id="test-request-1",
         device_type=3,
         parameters={"temperature": "25"},
         timestamp=200,
@@ -96,6 +97,7 @@ async def test_state_change_processor_appends_multiple_events_in_order() -> None
         DeviceStateChangeEvent(
             device_id=7,
             writer=writer,
+            request_id="test-request-2",
             device_type=1,
             parameters={"a": "1"},
             timestamp=10,
@@ -105,6 +107,7 @@ async def test_state_change_processor_appends_multiple_events_in_order() -> None
         DeviceStateChangeEvent(
             device_id=7,
             writer=writer,
+            request_id="test-request-3",
             device_type=1,
             parameters={"a": "2"},
             timestamp=20,
@@ -126,6 +129,7 @@ async def test_state_change_processor_does_not_append_when_device_not_registered
     event = DeviceStateChangeEvent(
         device_id=99,
         writer=writer,
+        request_id="test-request-4",
         device_type=1,
         parameters={"x": "y"},
         timestamp=50,

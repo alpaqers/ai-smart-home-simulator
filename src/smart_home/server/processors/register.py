@@ -34,7 +34,7 @@ class RegisterProcessor:
             response.error_message = str(e)
 
         try:
-            data = build_envelope(response)
+            data = encode_wire_message(event.request_id, build_envelope(response))
             event.writer.write(data)
             await event.writer.drain()
         except Exception as e:

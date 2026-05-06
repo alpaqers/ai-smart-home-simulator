@@ -23,10 +23,11 @@ def test_encode_register_request():
 
 
 def test_encode_state_change():
-    payload_b64 = encode_state_change(1, {"power": "ON"}, "lamp")
+    payload_b64 = encode_state_change(1, {"power": "ON"}, 1)
     data = base64.b64decode(payload_b64)
     envelope = message_pb2.Envelope()
     envelope.ParseFromString(data)
     assert envelope.WhichOneof("payload") == "device_state_change"
     assert envelope.device_state_change.device_id == 1
+    assert envelope.device_state_change.device_type == 1
     assert envelope.device_state_change.parameters["power"] == "ON"
