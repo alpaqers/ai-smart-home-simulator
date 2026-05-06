@@ -33,3 +33,9 @@ class ClientEventRouter:
             print(f"WARN: {message}")
 
         return success
+
+    def _handle_state_change(self):
+        return None
+
+    def _handle_device_registry(self):
+        return None
