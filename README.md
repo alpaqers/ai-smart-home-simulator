@@ -114,3 +114,21 @@ docker compose logs -f server
 ```bash
 docker compose down
 ```
+
+# Setup script
+
+The root setup scripts can run the Docker automatically.
+
+Linux, macOS, WSL, or Git Bash:
+
+```bash
+bash setup.sh
+```
+
+Windows PowerShell:
+
+```powershell
+.\setup.ps1
+```
+
+If Docker is not running, the scripts wait and retry until Docker becomes available.
