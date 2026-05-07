@@ -84,3 +84,18 @@ def decode_state_update_message(response_b64: str) -> message_pb2.DeviceStateUpd
     if envelope.WhichOneof("payload") == "device_state_update":
         return envelope.device_state_update
     return None
+
+
+def decode_device_registration(response_b64: str) -> message_pb2.DeviceRegisterReq | None:
+    """Decodes a base64 string into a DeviceRegisterReq by unwrapping the Envelope.
+    Returns None if the payload is not valid or not a DeviceRegisterReq.
+    """
+    
+    envelope = _unwrap_envelope(response_b64)
+    if envelope is None:
+        return None
+    
+    if envelope.WhichOneof("payload") == "device_register_req":
+        return envelope.device_register_req
+    
+    return None
