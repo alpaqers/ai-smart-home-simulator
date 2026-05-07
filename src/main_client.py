@@ -1,6 +1,6 @@
 import asyncio
 
-from controllers.arg_parser import parse_args
+from smart_home.client.controllers.arg_parser import parse_args
 
 from smart_home.client.client import start_client
 

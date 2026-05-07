@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from .connection_handler import ConnectionHandler
-from .message_coder import decode_register_response, encode_register_request
+from .message_coder import decode_register_response, encode_register_request, encode_state_change
 
 
 async def register_device(handler: ConnectionHandler, device_type: str) -> int | None:

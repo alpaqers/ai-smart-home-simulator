@@ -1,5 +1,5 @@
-from models.device import Device
-from models.containers import DeviceStorage
+from ..models.device import Device
+from ..models.containers import DeviceStorage
 
 
 def add_device_to_storage(storage: DeviceStorage, device: Device) -> tuple[bool, str]:
