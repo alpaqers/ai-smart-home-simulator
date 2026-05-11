@@ -5,6 +5,7 @@ services:
     container_name: smart-home-server
     environment:
       - PYTHONUNBUFFERED=1
+      - SERVER_HOST=0.0.0.0
     command: ["python", "src/main_server.py"]
     restart: unless-stopped
     ports:
@@ -26,7 +27,8 @@ services:
     image: smart-home:latest
     environment:
       - PYTHONUNBUFFERED=1
-    command: ["python", "src/main_client.py"]
+      - CLIENT_SERVER_HOST=server
+    command: ["python", "src/main_client.py", "--device_type", "lamp"]
     depends_on:
       server:
         condition: service_healthy
