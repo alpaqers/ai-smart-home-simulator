@@ -13,7 +13,7 @@ from __future__ import annotations
 import asyncio
 from asyncio import StreamWriter
 
-from ..controllers.logger_service import LoggerService
+from ..controllers.logger_service import LoggerService, _show_logs
 from ..controllers.device_service import _show_devices, _change_device_state, _add_device
 from ..models.containers import DeviceStorage
 
@@ -47,7 +47,7 @@ async def run_cli(
             await asyncio.to_thread(_change_device_state, storage, writer, logger)
 
         elif choice == "4":
-            pass  # TODO: show_logs()
+            await asyncio.to_thread(_show_logs, logger)
 
         elif choice == "5":
             logger.info("Client disconnecting.")
