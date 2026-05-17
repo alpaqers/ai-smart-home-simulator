@@ -1,5 +1,5 @@
 from ..models.containers import DeviceStorage
-from ..controllers.device_registry import add_device_to_storage
+from ..controllers.device_storage import add_device_to_storage
 from ..controllers.device_factory import create_lamp, create_thermometer, create_sensor, create_ac
 from ..models.device import Device
 

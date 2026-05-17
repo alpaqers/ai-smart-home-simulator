@@ -5,7 +5,7 @@ from ..controllers.device_controller import get_devices_by_type, get_all_devices
 from ..controllers.device_registry import add_device_to_storage
 from ..controllers.logger_service import LoggerService
 from ..models.containers import DeviceStorage
-from ..models.device_storage import update_device_state
+from ..controllers.device_storage import update_device_state
 from ..models.device import _STATE_SCHEMA, _CAPABILITIES_SCHEMA
 from ..controllers.device_factory import create_lamp, create_thermometer, create_sensor, create_ac
 

@@ -14,6 +14,7 @@ from ..client.views.cli import run_cli
 from ..client.controllers.logger_service import LoggerService
 
 
+async def start_client(args: argparse.Namespace) -> None:
     host = args.ip or SERVER_HOST
     port = args.port or SERVER_PORT
 

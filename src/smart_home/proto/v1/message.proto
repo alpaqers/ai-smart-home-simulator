@@ -47,3 +47,5 @@ message Envelope {
         DeviceRegisterResp device_register_resp = 5;
     }
 }
+
+>>>>>>>>> Temporary merge branch 2
