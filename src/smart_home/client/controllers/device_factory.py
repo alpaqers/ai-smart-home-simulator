@@ -1,6 +1,5 @@
 from ..models.device import Device
 
-
 def create_lamp(device_id: int, device_type: str, capabilities: dict, device_state: dict) -> Device:
     brightness = input("Podaj jasność lampy (0-100): ")
     return Device(

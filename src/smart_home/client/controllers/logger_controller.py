@@ -49,6 +49,7 @@ class LoggerController:
     def log(self, message: str, level: LogLevel = LogLevel.INFO) -> LogEntry:
         entry = LogEntry(message=message, level=level)
         self.active_session.entries.append(entry)
+        self.queue.put_nowait(entry)
         return entry
 
     def info(self, message: str) -> LogEntry: return self.log(message, LogLevel.INFO)
