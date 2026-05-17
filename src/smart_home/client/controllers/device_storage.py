@@ -2,7 +2,7 @@ from .containers import DeviceStorage
 from .device import Device
 
 
-def save_device(storage: DeviceStorage, device: Device) -> tuple[bool, str]:
+def add_device_to_storage(storage: DeviceStorage, device: Device) -> tuple[bool, str]:
     dtype = device.device_type.lower().strip().replace(" ", "")
 
     if dtype == "lamp":

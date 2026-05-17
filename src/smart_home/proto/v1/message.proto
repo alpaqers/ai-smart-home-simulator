@@ -39,11 +39,12 @@ message DeviceRegisterResp {
 }
 
 message Envelope {
-	oneof payload {
-		DeviceStateChange device_state_change = 1;
-		DeviceStateUpdate device_state_update = 2;
-		DeviceResponse device_response = 3;
-		DeviceRegisterReq device_register_req = 4;
-		DeviceRegisterResp device_register_resp = 5;
-	}
+    oneof payload {
+        DeviceStateChange device_state_change = 1;
+        DeviceStateUpdate device_state_update = 2;
+        DeviceResponse device_response = 3;
+        DeviceRegisterReq device_register_req = 4;
+        DeviceRegisterResp device_register_resp = 5;
+    }
 }
+
