@@ -55,21 +55,29 @@ def decode_register_response(response_b64: str) -> message_pb2.DeviceRegisterRes
     return None
 
 
-def encode_state_change(device_id: int, parameters: dict[str, str], device_type: str) -> str:
-    """Encodes a DeviceStateChange wrapped in an Envelope to a base64 string.
-    
-    Args:
-        device_id: The unique identifier of the device.
-        parameters: A dictionary containing the state changes.
-        device_type: String representing the type of the device.
-    """
+def create_state_change_message(
+    device_id: int,
+    parameters: dict[str, str],
+    device_type: int,
+) -> message_pb2.DeviceStateChange:
     msg = message_pb2.DeviceStateChange()
     msg.device_id = device_id
     msg.timestamp = int(time())
     msg.device_type = device_type
     if parameters:
         msg.parameters.update(parameters)
-    # Wrap the message in an Envelope before encoding
+    return msg
+
+
+def encode_state_change(device_id: int, parameters: dict[str, str], device_type: int) -> str:
+    """Encodes a DeviceStateChange wrapped in an Envelope to a base64 string.
+    
+    Args:
+        device_id: The unique identifier of the device.
+        parameters: A dictionary containing the state changes.
+        device_type: Numeric device type identifier.
+    """
+    msg = create_state_change_message(device_id, parameters, device_type)
     return _wrap_envelope(msg)
 
 

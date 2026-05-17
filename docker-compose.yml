@@ -1,0 +1,36 @@
+services:
+  server:
+    build: .
+    image: smart-home:latest
+    container_name: smart-home-server
+    environment:
+      - PYTHONUNBUFFERED=1
+      - SERVER_HOST=0.0.0.0
+    command: ["python", "src/main_server.py"]
+    restart: unless-stopped
+    ports:
+      - "9999:9999"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import socket; s=socket.socket(); s.settimeout(2); s.connect(('127.0.0.1', 9999)); s.close()",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 2s
+
+  client:
+    image: smart-home:latest
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CLIENT_SERVER_HOST=server
+    command: ["python", "src/main_client.py", "--device_type", "lamp"]
+    depends_on:
+      server:
+        condition: service_healthy
+    stdin_open: true
+    tty: true

@@ -21,10 +21,15 @@ class DeviceRegistry:
 
     async def register(self, device: RegisteredDevice) -> None:
         async with self._lock:
+            if device.device_id in self._devices_by_id:
+                raise ValueError(
+                    f"Device with id {device.device_id} is already registered"
+                )
+
             self._devices_by_id[device.device_id] = device
             self._device_id_by_writer[id(device.writer)] = device.device_id
 
-            print(f"[DeviceRegistry] Registered device {device.device_id}")
+        print(f"[DeviceRegistry] Registered device {device.device_id}")
 
     async def get_by_device_id(self, device_id: int) -> RegisteredDevice | None:
         async with self._lock:
