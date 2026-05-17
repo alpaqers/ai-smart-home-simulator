@@ -16,8 +16,13 @@ class ClientEventRouter:
 
         Returns True when the event was recognized and handled.
         """
-        return self._handle_state_update(event_data)
-
+        if event_data.startswith("STATE_UPDATE:"):
+            return self._handle_state_update(event_data)
+        elif event_data.startswith("DEVICE_REGISTRATION:"):
+            return self._handle_device_registration(event_data)
+        else:
+            print(f"WARN: Unknown event: {event_data}")
+            return False
     def _handle_state_update(self, event_data: str) -> bool:
         state_update = message_coder.decode_state_update_message(event_data)
         if state_update is None:
