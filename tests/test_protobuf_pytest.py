@@ -90,7 +90,8 @@ def test_encode_state_change_from_coder_roundtrip():
     )
 
     payload = base64.b64decode(payload_b64)
-    decoded = message_pb2.DeviceStateChange.FromString(payload)
+    envelope = message_pb2.Envelope.FromString(payload)
+    decoded = envelope.device_state_change
 
     assert decoded.device_id == 8
     assert decoded.device_type == 2

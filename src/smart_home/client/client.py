@@ -3,8 +3,7 @@ from __future__ import annotations
 import asyncio
 import argparse
 from asyncio import StreamReader, StreamWriter
-
-from ..common.config import config
+from smart_home.common.config_loader import SERVER_HOST, SERVER_PORT
 from ..client.controllers.connection_handler import ConnectionHandler
 from ..client.controllers.message_sender import register_device
 from ..client.controllers.event_handler import EventHandler
@@ -15,9 +14,8 @@ from ..client.views.cli import run_cli
 from ..client.controllers.logger_service import LoggerService
 
 
-async def start_client(args: argparse.Namespace) -> None:
-    host = args.ip or config.host
-    port = args.port or config.port
+    host = args.ip or SERVER_HOST
+    port = args.port or SERVER_PORT
 
     reader: StreamReader
     writer: StreamWriter

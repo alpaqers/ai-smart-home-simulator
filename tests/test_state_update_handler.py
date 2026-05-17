@@ -30,7 +30,9 @@ def test_device_state_update_event_updates_storage():
     update.command_type = 1
     update.parameters["power"] = "ON"
 
-    payload_b64 = base64.b64encode(update.SerializeToString()).decode("utf-8")
+    envelope = message_pb2.Envelope()
+    envelope.device_state_update.CopyFrom(update)
+    payload_b64 = base64.b64encode(envelope.SerializeToString()).decode("utf-8")
 
     handled = router.handle(payload_b64)
 
