@@ -61,7 +61,6 @@ class LoggerController:
         return list(session.entries)
 
     async def _handle(self, entry: LogEntry) -> None:
-        #placeholder
         print(str(entry))
 
     async def _consumer(self) -> None:

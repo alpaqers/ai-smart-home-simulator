@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ..models.containers import DeviceStorage
-from ..models.device_storage import update_device_state
+from ..models.device_storage import DeviceStorage
+from .device_controller import update_device_state
 from . import message_coder
 
 

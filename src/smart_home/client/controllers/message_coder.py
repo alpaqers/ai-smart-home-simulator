@@ -1,70 +1,71 @@
 from __future__ import annotations
 
 import base64
-import binascii
 
 from time import time
 from ...proto.v1 import message_pb2
 
+def build_envelope(message) -> bytes:
+    envelope = message_pb2.Envelope()
+    if isinstance(message, message_pb2.DeviceStateChange):
+        envelope.device_state_change.CopyFrom(message)
+    elif isinstance(message, message_pb2.DeviceStateUpdate):
+        envelope.device_state_update.CopyFrom(message)
+    elif isinstance(message, message_pb2.DeviceResponse):
+        envelope.device_response.CopyFrom(message)
+    elif isinstance(message, message_pb2.DeviceRegisterReq):
+        envelope.device_register_req.CopyFrom(message)
+    elif isinstance(message, message_pb2.DeviceRegisterResp):
+        envelope.device_register_resp.CopyFrom(message)
+    else:
+        raise ValueError(f"Unsupported message type: {type(message).__name__}")
 
-def encode_register_request(device_type: str) -> tuple[str, message_pb2.DeviceRegisterReq]:
-    """Encode a DeviceRegisterReq to a base64 string for transmission.
+    return envelope.SerializeToString()
 
-    Returns both the encoded payload and the original request object,
-    so the caller can inspect fields such as device_id after encoding.
-    """
+def parse_envelope(data: bytes) -> message_pb2.Envelope:
+    envelope = message_pb2.Envelope()
+    envelope.ParseFromString(data)
+    return envelope
+
+def encode_register_request(
+    device_type:  str,
+    capabilities: dict[str, str],
+    device_state: dict[str, str],
+) -> tuple[str, message_pb2.DeviceRegisterReq]:
     req = message_pb2.DeviceRegisterReq()
     req.device_type = device_type
-    req.timestamp = int(time())
-    req.capabilities[""] = ""
+    req.timestamp   = int(time())
+    req.capabilities.update(capabilities)
+    req.device_state.update(device_state)
 
-    payload_b64 = base64.b64encode(req.SerializeToString()).decode("utf-8")
+    envelope_bytes = build_envelope(req)
+    payload_b64 = base64.b64encode(envelope_bytes).decode("utf-8")
     return payload_b64, req
 
 
 def decode_register_response(response_b64: str) -> message_pb2.DeviceRegisterResp:
-    """Decode a base64 string into a DeviceRegisterResp protobuf message."""
-    resp_bytes = base64.b64decode(response_b64)
-    return message_pb2.DeviceRegisterResp.FromString(resp_bytes)
+    envelope_bytes = base64.b64decode(response_b64)
+    envelope = parse_envelope(envelope_bytes)
+    return envelope.device_register_resp
 
 
 def encode_state_change(device_id: int, parameters: dict[str, str], device_type: str) -> str:
-    """
-    Encodes a DeviceStateChange message into a base64 string.
-    
-    Args:
-        device_id: The unique identifier of the device.
-        parameters: A dictionary containing the state changes.
-        device_type: String representing the type of the device (np. "lampka").
-    """
     msg = message_pb2.DeviceStateChange()
-
     msg.device_id = device_id
     msg.timestamp = int(time())
-    msg.device_type = device_type #string
-    
+    msg.device_type = device_type
     if parameters:
         msg.parameters.update(parameters)
 
-    payload_bytes = msg.SerializeToString()
-    payload_b64 = base64.b64encode(payload_bytes).decode("utf-8")
-    
-    return payload_b64
+    envelope_bytes = build_envelope(msg)
+    return base64.b64encode(envelope_bytes).decode("utf-8")
 
 
 def decode_state_update_message(response_b64: str) -> message_pb2.DeviceStateUpdate | None:
-    """Decode base64 payload to DeviceStateUpdate when possible.
-
-    Returns None when the payload is not valid base64/protobuf state update data.
-    """
     try:
-        payload = base64.b64decode(response_b64, validate=True)
-    except (binascii.Error, ValueError):
-        return None
-
-    msg = message_pb2.DeviceStateUpdate()
-    try:
-        msg.ParseFromString(payload)
+        envelope_bytes = base64.b64decode(response_b64, validate=True)
+        envelope = parse_envelope(envelope_bytes)
+        msg = envelope.device_state_update
     except Exception:
         return None
 
