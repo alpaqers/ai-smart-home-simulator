@@ -12,6 +12,7 @@ from ..client.controllers.logger_controller import LoggerController
 from ..client.models.containers import DeviceStorage
 from ..client.views.cli import run_cli
 from ..client.controllers.logger_service import LoggerService
+from ..client.controllers.persistence import load_from_file
 
 
 async def start_client(args: argparse.Namespace) -> None:
@@ -23,7 +24,7 @@ async def start_client(args: argparse.Namespace) -> None:
     reader, writer = await asyncio.open_connection(host, port)
 
     bus = EventHandler()
-    storage = DeviceStorage()
+    storage = load_from_file()
     router = ClientEventRouter(storage)
     bus.subscribe(router.handle)
     await bus.start()
