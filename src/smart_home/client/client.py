@@ -12,7 +12,7 @@ from ..client.controllers.logger_controller import LoggerController
 from ..client.models.containers import DeviceStorage
 from ..client.views.cli import run_cli
 from ..client.controllers.logger_service import LoggerService
-
+from ..client.controllers.time_service import TimeService
 
 async def start_client(args: argparse.Namespace) -> None:
     host = args.ip or SERVER_HOST
@@ -37,14 +37,16 @@ async def start_client(args: argparse.Namespace) -> None:
     logger_ctrl.create_session(device_type=args.device_type)
     logger = LoggerService(logger_ctrl)
 
-    registered_device_id = await register_device(connection_handler, args.device_type)
+    time_service = TimeService()
+
+    registered_device_id = await register_device(connection_handler, args.device_type, time_service)
     if registered_device_id is None:
         logger.error("Device registration did not complete.")
     else:
         logger.info(f"Connected to {host}:{port} as '{args.device_type}' (id={registered_device_id})")
 
     try:
-        await run_cli(writer, logger, storage)
+        await run_cli(writer, logger, storage, time_service)
     finally:
         await connection_handler.stop()
         await bus.stop()

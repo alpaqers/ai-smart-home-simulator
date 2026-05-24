@@ -1,13 +1,3 @@
-"""
-TBD:
-handlers = {
-        "1": lambda: show_devices(store),
-        "2": lambda: add_device(store, logger, device_type),
-        "3": lambda: change_device_state(store, logger, writer),
-        "4": lambda: show_logs(logger),
-    }
-"""
-
 from __future__ import annotations
 
 import asyncio
@@ -15,6 +5,7 @@ from asyncio import StreamWriter
 
 from ..controllers.logger_service import LoggerService, _show_logs
 from ..controllers.device_service import _show_devices, _change_device_state, _add_device
+from ..controllers.time_service import TimeService
 from ..models.containers import DeviceStorage
 
 _MENU = """
@@ -29,11 +20,30 @@ _MENU = """
 └──────────────────────────────┘"""
 
 
+async def _setup_time(time_service: TimeService) -> None:
+    """Ask user whether to use real or simulated time."""
+    choice = await asyncio.to_thread(input, "Use simulated time? (y/n): ")
+    if choice.strip().lower() == "y":
+        raw = await asyncio.to_thread(input, "Enter simulated time (unix timestamp): ")
+        try:
+            time_service.use_simulated_time(int(raw.strip()))
+            print("Using simulated time.")
+        except ValueError:
+            print("Invalid timestamp, using real time.")
+            time_service.use_real_time()
+    else:
+        time_service.use_real_time()
+        print("Using real time.")
+
+
 async def run_cli(
         writer: StreamWriter,
         logger: LoggerService,
         storage: DeviceStorage,
+        time_service: TimeService,
 ) -> None:
+    await _setup_time(time_service)
+
     while True:
         choice = await asyncio.to_thread(input, _MENU + "\n› ")
 
@@ -44,7 +54,7 @@ async def run_cli(
             await asyncio.to_thread(_add_device, storage, logger)
 
         elif choice == "3":
-            await asyncio.to_thread(_change_device_state, storage, writer, logger)
+            await asyncio.to_thread(_change_device_state, storage, writer, logger, time_service)
 
         elif choice == "4":
             await asyncio.to_thread(_show_logs, logger)

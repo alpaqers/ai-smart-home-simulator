@@ -8,7 +8,7 @@ from ..models.containers import DeviceStorage
 from ..controllers.device_storage import update_device_state
 from ..models.device import _STATE_SCHEMA, _CAPABILITIES_SCHEMA
 from ..controllers.device_factory import create_lamp, create_thermometer, create_sensor, create_ac
-
+from ..controllers.time_service import TimeService
 
 def _show_devices(storage: DeviceStorage) -> None:
     filter_type = input("  Filter by type (leave blank for all): ").strip().lower()
@@ -66,6 +66,7 @@ def _change_device_state(
     storage: DeviceStorage,
     writer:  asyncio.StreamWriter,
     logger:  LoggerService,
+    time_service: TimeService,
 ) -> None:
     print("\n── Change Device State ──────────────────────")
 
@@ -106,7 +107,7 @@ def _change_device_state(
         logger.error(message)
         return
 
-    payload = encode_state_change(device_id, new_state, device.device_type)
+    payload = encode_state_change(device_id, new_state, device.device_type, time_service)
     if isinstance(payload, str):
         payload = payload.encode("utf-8")
     writer.write(len(payload).to_bytes(4, "big") + payload)
