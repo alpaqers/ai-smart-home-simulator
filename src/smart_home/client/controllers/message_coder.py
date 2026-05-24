@@ -1,7 +1,7 @@
 from __future__ import annotations
 import base64
 import binascii
-from time import time
+from .time_service import TimeService
 from ...proto.v1 import message_pb2
 
 
@@ -28,14 +28,14 @@ def _unwrap_envelope(response_b64: str) -> message_pb2.Envelope | None:
         return None
 
 
-def encode_register_request(device_type: str) -> tuple[str, message_pb2.DeviceRegisterReq]:
+def encode_register_request(device_type: str, time_service: TimeService) -> tuple[str, message_pb2.DeviceRegisterReq]:
     """Encodes a DeviceRegisterReq wrapped in an Envelope to a base64 string.
     Returns both the encoded payload and the original request object,
     so the caller can inspect fields such as device_id after encoding.
     """
     req = message_pb2.DeviceRegisterReq()
     req.device_type = device_type
-    req.timestamp = int(time())
+    req.timestamp = time_service.now()
     req.capabilities[""] = ""
     # Wrap the request in an Envelope before encoding
     payload_b64 = _wrap_envelope(req)
@@ -59,27 +59,21 @@ def create_state_change_message(
     device_id: int,
     parameters: dict[str, str],
     device_type: int,
+    time_service: TimeService,
 ) -> message_pb2.DeviceStateChange:
     msg = message_pb2.DeviceStateChange()
     msg.device_id = device_id
-    msg.timestamp = int(time())
+    msg.timestamp = time_service.now()
     msg.device_type = device_type
     if parameters:
         msg.parameters.update(parameters)
     return msg
 
 
-def encode_state_change(device_id: int, parameters: dict[str, str], device_type: int) -> str:
-    """Encodes a DeviceStateChange wrapped in an Envelope to a base64 string.
-    
-    Args:
-        device_id: The unique identifier of the device.
-        parameters: A dictionary containing the state changes.
-        device_type: Numeric device type identifier.
-    """
-    msg = create_state_change_message(device_id, parameters, device_type)
+def encode_state_change(device_id: int, parameters: dict[str, str], device_type: int, time_service: TimeService) -> str:
+    """Encodes a DeviceStateChange wrapped in an Envelope to a base64 string."""
+    msg = create_state_change_message(device_id, parameters, device_type, time_service)
     return _wrap_envelope(msg)
-
 
 def decode_state_update_message(response_b64: str) -> message_pb2.DeviceStateUpdate | None:
     """Decodes a base64 string into a DeviceStateUpdate by unwrapping the Envelope.
