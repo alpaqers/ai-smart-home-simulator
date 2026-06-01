@@ -1,6 +1,5 @@
 import asyncio
 
-from smart_home.common.config import config
 from smart_home.server.connection_handler import handle_client
 from smart_home.server.event_bus import EventBus
 from smart_home.server.events import (
@@ -14,8 +13,7 @@ from smart_home.server.processors import (
     StateChangeProcessor,
 )
 from smart_home.server.registry import DeviceRegistry
-from ..common.config import (config)
-from ..server.connection_handler import handle_client
+from smart_home.common.config_loader import HOST, PORT
 
 
 async def start_server() -> None:
@@ -33,11 +31,11 @@ async def start_server() -> None:
     #moved from main_server.py
     server = await asyncio.start_server(
         lambda reader, writer: handle_client(reader, writer, registry, bus),
-        config.host,
-        config.port,
+        HOST,
+        PORT,
     )
 
-    print(f"Server started on {config.host}:{config.port}")
+    print(f"Server started on: {HOST}:{PORT}")
 
     async with server:
         await server.serve_forever()

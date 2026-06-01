@@ -13,7 +13,7 @@ from .device_controller import update_device_state
 from ..models.device import _STATE_SCHEMA, _CAPABILITIES_SCHEMA
 from ..controllers.device_factory import create_device
 from ..controllers.event_handler import EventHandler
-from ...common.config import config
+from ...common.config_loader import SERVER_HOST, SERVER_PORT
 
 def _show_devices(storage: DeviceStorage) -> None:
     filter_type = input("  Filter by type (leave blank for all): ").strip().lower()
@@ -46,7 +46,7 @@ async def _add_device(device_storage: DeviceStorage, connection_storage: Connect
 
     device = create_device(device_type, capabilities, device_state)
 
-    reader, writer = await asyncio.open_connection(port=config.port, host=config.host)
+    reader, writer = await asyncio.open_connection(host=SERVER_HOST, port=SERVER_PORT)
     handler = ConnectionHandler(reader, writer, device_type)
     handler.event_callback = bus.put_event
     await handler.start()
