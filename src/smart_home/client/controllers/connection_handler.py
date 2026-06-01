@@ -59,7 +59,7 @@ class ConnectionHandler:
         except asyncio.TimeoutError as exc:
             raise TimeoutError(f"No response received within {timeout:.2f}s") from exc
         finally:
-            await self._pending.pop(request_id, None)
+            self._pending.pop(request_id, None)
 
     async def _read_loop(self) -> None:
         try:

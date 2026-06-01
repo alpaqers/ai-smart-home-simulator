@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import tomllib
 
 
@@ -14,11 +15,10 @@ config = load_config()
 
 
 SERVER_CONFIG = config["server"]
-HOST = SERVER_CONFIG["host"]
-PORT = SERVER_CONFIG["port"]
-BUFFER_SIZE = SERVER_CONFIG["buffer_size"]
-
+HOST = os.getenv("SERVER_HOST", SERVER_CONFIG["host"])
+PORT = int(os.getenv("SERVER_PORT", SERVER_CONFIG["port"]))
+BUFFER_SIZE = int(os.getenv("SERVER_BUFFER_SIZE", SERVER_CONFIG["buffer_size"]))
 
 CLIENT_CONFIG = config["client"]
-SERVER_HOST = CLIENT_CONFIG["server_host"]
-SERVER_PORT = CLIENT_CONFIG["server_port"]
+SERVER_HOST = os.getenv("CLIENT_SERVER_HOST", CLIENT_CONFIG["server_host"])
+SERVER_PORT = int(os.getenv("CLIENT_SERVER_PORT", CLIENT_CONFIG["server_port"]))

@@ -8,7 +8,7 @@ class DeviceStateChangeEvent:
     writer: StreamWriter
     request_id: str
     timestamp: int
-    device_type: int
+    device_type: str
     parameters: dict[str, str]
 
 
