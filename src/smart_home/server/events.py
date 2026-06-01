@@ -31,3 +31,7 @@ class DeviceRegisterEvent:
     capabilities: dict[str, str]
     device_state: dict[str, str]
     timestamp: int
+
+@dataclass
+class ScheduledTaskDueEvent:
+    task_id: int
