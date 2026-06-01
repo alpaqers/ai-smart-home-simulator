@@ -11,9 +11,10 @@ if str(SRC_DIR) not in sys.path:
 
 
 from smart_home.client.controllers.event_router import ClientEventRouter
-from smart_home.client.models.containers import DeviceStorage
+from smart_home.client.controllers.device_controller import save_device
+from smart_home.client.controllers.message_coder import build_envelope
 from smart_home.client.models.device import Device
-from smart_home.client.models.device_storage import save_device
+from smart_home.client.models.device_storage import DeviceStorage
 from smart_home.proto.v1 import message_pb2
 
 
@@ -30,9 +31,7 @@ def test_device_state_update_event_updates_storage():
     update.command_type = 1
     update.parameters["power"] = "ON"
 
-    envelope = message_pb2.Envelope()
-    envelope.device_state_update.CopyFrom(update)
-    payload_b64 = base64.b64encode(envelope.SerializeToString()).decode("utf-8")
+    payload_b64 = base64.b64encode(build_envelope(update)).decode("utf-8")
 
     handled = router.handle(payload_b64)
 
@@ -59,7 +58,7 @@ def test_update_for_unknown_device_returns_false():
     update.command_type = 1
     update.parameters["power"] = "ON"
 
-    payload_b64 = base64.b64encode(update.SerializeToString()).decode("utf-8")
+    payload_b64 = base64.b64encode(build_envelope(update)).decode("utf-8")
 
     handled = router.handle(payload_b64)
 

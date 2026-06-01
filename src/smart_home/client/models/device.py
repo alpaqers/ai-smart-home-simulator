@@ -3,7 +3,7 @@ from typing import Dict, Any
 
 @dataclass
 class Device:
-    device_id: int
+    device_id: int | None
     device_type: str
     capabilities: Dict[str, str] = field(default_factory=dict)
     device_state: Dict[str, str] = field(default_factory=dict)
