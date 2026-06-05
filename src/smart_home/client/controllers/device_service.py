@@ -1,14 +1,19 @@
 import asyncio
 
+from ..models.connection_storage import ConnectionStorage
+from .connection_controller import add_connection
+from .connection_handler import ConnectionHandler
+from .message_sender import register_device
 from ..controllers.message_coder import encode_state_change
 from ..controllers.device_controller import get_devices_by_type, get_all_devices
 from ..controllers.device_registry import add_device_to_storage
 from ..controllers.logger_service import LoggerService
-from ..models.containers import DeviceStorage
-from ..controllers.device_storage import update_device_state
+from ..models.device_storage import DeviceStorage
+from .device_controller import update_device_state
 from ..models.device import _STATE_SCHEMA, _CAPABILITIES_SCHEMA
-from ..controllers.device_factory import create_lamp, create_thermometer, create_sensor, create_ac
-
+from ..controllers.device_factory import create_device
+from ..controllers.event_handler import EventHandler
+from ...common.config_loader import SERVER_HOST, SERVER_PORT
 
 def _show_devices(storage: DeviceStorage) -> None:
     filter_type = input("  Filter by type (leave blank for all): ").strip().lower()
@@ -28,38 +33,39 @@ def _show_devices(storage: DeviceStorage) -> None:
         print(f"  [{device.device_id}]  type={device.device_type}  state={device.device_state}")
 
 
-def _add_device(storage: DeviceStorage, logger: LoggerService) -> None:
-    _FACTORY_MAP = {
-        "lamp": create_lamp,
-        "thermometer": create_thermometer,
-        "sensor": create_sensor,
-        "ac": create_ac,
-        "airconditioning": create_ac,
-    }
+async def _add_device(device_storage: DeviceStorage, connection_storage: ConnectionStorage, logger: LoggerService, bus: EventHandler) -> None:
     print("\n── Add Device ───────────────────────────────")
 
-    raw_id  = input("Device ID (int): ").strip()
-    device_type = input("Device type (lamp / thermometer / sensor / ac): ").strip().lower()
-
-    try:
-        device_id = int(raw_id)
-    except ValueError:
-        print("Device ID must be an integer.")
-        return
-
-    factory = _FACTORY_MAP.get(device_type)
-    if factory is None:
+    device_type = (await asyncio.to_thread(input, "Device type: ")).strip().lower()
+    if device_type not in _CAPABILITIES_SCHEMA:
         print(f"Unknown device type '{device_type}'.")
         return
 
-    capabilities = _prompt_fields("  Capabilities", _CAPABILITIES_SCHEMA.get(device_type, []))
-    device_state = _prompt_fields("  Initial state", _STATE_SCHEMA.get(device_type, []))
+    capabilities = await asyncio.to_thread(_prompt_fields, "  Capabilities", _CAPABILITIES_SCHEMA.get(device_type, []))
+    device_state = await asyncio.to_thread(_prompt_fields, "  Initial state", _STATE_SCHEMA.get(device_type, []))
 
-    device = factory(device_id, device_type, capabilities, device_state)
-    ok, msg = add_device_to_storage(storage, device)
+    device = create_device(device_type, capabilities, device_state)
+
+    reader, writer = await asyncio.open_connection(host=SERVER_HOST, port=SERVER_PORT)
+    handler = ConnectionHandler(reader, writer, device_type)
+    handler.event_callback = bus.put_event
+    await handler.start()
+
+    registered_id = await register_device(handler, device_type, capabilities, device_state)
+    if registered_id is None:
+        print(f"Failed to register device with type '{device_type}'.")
+        logger.error(f"Failed to register device with type '{device_type}'.")
+        await handler.stop()
+        return
+
+    device.device_id = registered_id
+
+    ok, msg = add_device_to_storage(device_storage, device)
+    add_connection(connection_storage, registered_id, handler)
 
     print(f"\n{msg}")
     logger.info(msg) if ok else logger.error(msg)
+    return
 
 
 def _change_device_state(

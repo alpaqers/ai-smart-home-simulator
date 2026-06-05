@@ -18,6 +18,9 @@ SERVER_CONFIG = config["server"]
 HOST = os.getenv("SERVER_HOST", SERVER_CONFIG["host"])
 PORT = int(os.getenv("SERVER_PORT", SERVER_CONFIG["port"]))
 BUFFER_SIZE = int(os.getenv("SERVER_BUFFER_SIZE", SERVER_CONFIG["buffer_size"]))
+TICK_INTERVAL_SECONDS = float(
+    os.getenv("SERVER_TICK_INTERVAL_SECONDS", SERVER_CONFIG["tick_interval_seconds"])
+)
 
 CLIENT_CONFIG = config["client"]
 SERVER_HOST = os.getenv("CLIENT_SERVER_HOST", CLIENT_CONFIG["server_host"])

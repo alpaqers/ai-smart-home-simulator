@@ -31,13 +31,13 @@ class RegisterProcessor:
             response.device_id = event.device_id
             response.success = False
             response.timestamp = event.timestamp
-            response.error_message = str(e)
+            response.cause = str(e)
 
         try:
             data = encode_wire_message(event.request_id, build_envelope(response))
             event.writer.write(data)
             await event.writer.drain()
-        except Exception as e:
+        except Exception:
             pass
 
         print(f"[RegisterProcessor] Device {event.device_id} registered")

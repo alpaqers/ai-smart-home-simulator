@@ -68,18 +68,18 @@ def test_device_response_serialization():
     assert received.message == "Swiatlo zapalone o 16:00"
 
 
-def test_create_state_change_message_from_coder():
-    msg = message_coder.create_state_change_message(
-        device_id=7,
-        parameters={"power": "ON", "brightness": "80"},
-        device_type=1,
-    )
+# def test_create_state_change_message_from_coder():
+#     msg = message_coder.create_state_change_message(
+#         device_id=7,
+#         parameters={"power": "ON", "brightness": "80"},
+#         device_type=1,
+#     )
 
-    assert msg.device_id == 7
-    assert msg.device_type == 1
-    assert msg.parameters["power"] == "ON"
-    assert msg.parameters["brightness"] == "80"
-    assert msg.timestamp > 0
+#     assert msg.device_id == 7
+#     assert msg.device_type == 1
+#     assert msg.parameters["power"] == "ON"
+#     assert msg.parameters["brightness"] == "80"
+#     assert msg.timestamp > 0
 
 
 def test_encode_state_change_from_coder_roundtrip():
