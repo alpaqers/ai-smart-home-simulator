@@ -38,6 +38,15 @@ message DeviceRegisterResp {
 	optional string cause = 4;
 }
 
+message TimeShiftRequest {
+    int32 year = 1;
+    int32 month = 2;
+    int32 day = 3;
+    int32 hour = 4;
+    int32 minute = 5;
+    int32 second = 6;
+}
+
 message Envelope {
     oneof payload {
         DeviceStateChange device_state_change = 1;
@@ -45,7 +54,6 @@ message Envelope {
         DeviceResponse device_response = 3;
         DeviceRegisterReq device_register_req = 4;
         DeviceRegisterResp device_register_resp = 5;
+		TimeShiftRequest time_shift_request = 6;
     }
 }
-
->>>>>>>>> Temporary merge branch 2
