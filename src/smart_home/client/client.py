@@ -46,7 +46,7 @@ async def start_client(args: argparse.Namespace) -> None:
         logger.info(f"Connected to {host}:{port} as '{args.device_type}' (id={registered_device_id})")
 
     try:
-        await run_cli(writer, logger, storage, time_service)
+        await run_cli(connection_handler, logger, storage, time_service)
     finally:
         await connection_handler.stop()
         await bus.stop()
