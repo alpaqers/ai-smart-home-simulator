@@ -57,8 +57,10 @@ def encode_register_request(
     device_type: str,
     capabilities: dict[str, str] | None = None,
     device_state: dict[str, str] | None = None,
+    device_id: int = 0,
 ) -> tuple[str, message_pb2.DeviceRegisterReq]:
     req = message_pb2.DeviceRegisterReq()
+    req.device_id = device_id
     req.device_type = device_type
     req.timestamp = int(time())
     req.capabilities.update(capabilities or {})
