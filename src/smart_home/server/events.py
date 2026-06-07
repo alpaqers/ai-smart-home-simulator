@@ -9,6 +9,11 @@ class TickEvent:
 
 
 @dataclass
+class TaskDueEvent:
+    task_id: int
+
+
+@dataclass
 class DeviceStateChangeEvent:
     device_id: int
     writer: StreamWriter
