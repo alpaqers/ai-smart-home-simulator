@@ -18,12 +18,8 @@ import os
 import threading
 from dataclasses import dataclass
 from typing import Awaitable, Optional, TypeVar
-import sys
 
-print(sys.path)
 from ...controllers.event_handler import EventHandler
-from smart_home.client.controllers.event_handler import EventHandler
-print(sys.path)
 from ...controllers.logger_service import LoggerService
 from ...models.connection_storage import ConnectionStorage
 from ...models.device_storage import DeviceStorage
