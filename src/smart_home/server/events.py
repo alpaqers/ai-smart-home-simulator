@@ -31,3 +31,14 @@ class DeviceRegisterEvent:
     capabilities: dict[str, str]
     device_state: dict[str, str]
     timestamp: int
+
+@dataclass
+class TimeShiftEvent:
+    request_id: str
+    writer: StreamWriter
+    year: int
+    month: int
+    day: int
+    hour: int
+    minute: int
+    second: int
