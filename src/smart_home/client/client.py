@@ -13,6 +13,7 @@ from ..client.models.containers import DeviceStorage
 from ..client.views.cli import run_cli
 from ..client.controllers.logger_service import LoggerService
 from ..client.controllers.persistence import load_from_file
+from ..client.controllers.time_service import TimeService
 
 
 async def start_client(args: argparse.Namespace) -> None:
@@ -23,9 +24,10 @@ async def start_client(args: argparse.Namespace) -> None:
     writer: StreamWriter
     reader, writer = await asyncio.open_connection(host, port)
 
+    time_service = TimeService()
     bus = EventHandler()
-    storage = load_from_file()
-    router = ClientEventRouter(storage)
+    storage = load_from_file(time_service)
+    router = ClientEventRouter(storage, time_service)
     bus.subscribe(router.handle)
     await bus.start()
 
