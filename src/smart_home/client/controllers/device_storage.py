@@ -1,6 +1,7 @@
 from ..models.containers import DeviceStorage
 from ..models.device import Device
-from .persistence import save_to_file
+from ..models.events import StorageEvent
+from .persistence import save_event_to_file
 
 
 def add_device_to_storage(storage: DeviceStorage, device: Device) -> tuple[bool, str]:
@@ -18,16 +19,30 @@ def add_device_to_storage(storage: DeviceStorage, device: Device) -> tuple[bool,
         return False, f"Unknown device type: {device.device_type}"
 
     # success: new evice added, now save the whole storage to disk
-    save_to_file(storage)
-    return True, f"Device {device.device_id} saved to {dtype} storage."
+    from dataclasses import asdict
+    event = StorageEvent(
+        event_type="device_registration",
+        device_id=device.device_id,
+        device_data=asdict(device)
+    )
+    save_event_to_file(event)
+    
+    return True, f"Device {device.device_id} registered and saved to event storage."
 
 
 def update_device_state(storage: DeviceStorage, device_id: int, new_state: dict[str, str]) -> tuple[bool, str]:
     for container in [storage.lamps, storage.thermometers, storage.sensors, storage.ACs]:
         if device_id in container:
             container[device_id].device_state.update(new_state)
-            # success: device state updated, now save the whole storage to disk
-            save_to_file(storage)
-            return True, f"Device {device_id} state updated."
+            
+            from dataclasses import asdict
+            event = StorageEvent(
+                event_type="state_update",
+                device_id=device_id,
+                device_data=asdict(container[device_id])
+            )
+            save_event_to_file(event)
+            
+            return True, f"Device {device_id} state updated and appended to event storage."
 
     return False, f"Device {device_id} not found in storage."
