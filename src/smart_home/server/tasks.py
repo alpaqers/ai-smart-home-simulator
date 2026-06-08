@@ -8,7 +8,7 @@ class ScheduledTask:
     device_id: int
     parameters: dict[str, str]
     time: int
-
+    dispatched: bool = False
 
 class TaskDatabase:
     def __init__(self) -> None:
@@ -37,8 +37,40 @@ class TaskDatabase:
             return [
                 _copy_task(task)
                 for task in self._tasks_by_id.values()
-                if task.time <= timestamp
+                if task.time <= timestamp and not task.dispatched
             ]
+
+    async def claim_due_task_ids(
+        self,
+        timestamp: int,
+        max_delay_seconds: int | None = None,
+    ) -> list[int]:
+        """Return due task IDs and mark them as dispatched without removing them."""
+        async with self._lock:
+            claimed_task_ids: list[int] = []
+
+            for task_id, task in self._tasks_by_id.items():
+                if task.dispatched:
+                    continue
+
+                if task.time > timestamp:
+                    continue
+
+                if max_delay_seconds is not None:
+                    if timestamp - task.time > max_delay_seconds:
+                        continue
+
+                self._tasks_by_id[task_id] = ScheduledTask(
+                    task_id=task.task_id,
+                    device_id=task.device_id,
+                    parameters=dict(task.parameters),
+                    time=task.time,
+                    dispatched=True,
+                )
+
+                claimed_task_ids.append(task_id)
+
+            return claimed_task_ids
 
     async def pop_due_tasks(self, timestamp: int) -> list[ScheduledTask]:
         """Return and remove tasks scheduled at or before the timestamp."""
@@ -66,4 +98,6 @@ def _copy_task(task: ScheduledTask) -> ScheduledTask:
         device_id=task.device_id,
         parameters=dict(task.parameters),
         time=task.time,
+        dispatched=task.dispatched
     )
+
