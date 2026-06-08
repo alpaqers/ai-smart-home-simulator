@@ -20,18 +20,10 @@ class Scheduler:
         await self._event_bus.subscribe(TickEvent, self.handle_tick)
 
     async def handle_tick(self, event: TickEvent) -> None:
-        due_tasks = await self._task_database.pop_due_tasks(event.timestamp)
+        due_task_ids = await self._task_database.claim_due_task_ids(
+            timestamp=event.timestamp,
+            max_delay_seconds=self._max_delay_seconds,
+        )
 
-        for task in due_tasks:
-            if self._is_expired(task.time, event.timestamp):
-                continue
-
-            await self._event_bus.publish(
-                TaskDueEvent(task_id=task.task_id)
-            )
-
-    def _is_expired(self, task_time: int, current_timestamp: int) -> bool:
-        if self._max_delay_seconds is None:
-            return False
-
-        return current_timestamp - task_time > self._max_delay_seconds
+        for task_id in due_task_ids:
+            await self._event_bus.publish(TaskDueEvent(task_id=task_id))
