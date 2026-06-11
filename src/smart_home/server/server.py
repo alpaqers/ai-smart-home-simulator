@@ -1,8 +1,11 @@
 import asyncio
 
+
 from smart_home.server.connection_handler import handle_client
 from smart_home.common.config_loader import HOST, PORT, TICK_INTERVAL_SECONDS
 from smart_home.server.event_bus import EventBus
+from smart_home.server.scheduler import Scheduler
+from smart_home.server.tasks import TaskDatabase
 from smart_home.server.events import (
     DeviceRegisterEvent,
     DeviceResponseEvent,
@@ -21,6 +24,15 @@ async def start_server() -> None:
     registry = DeviceRegistry()
     history = DeviceStateHistory()
     bus = EventBus()
+
+    task_database = TaskDatabase()
+
+    scheduler = Scheduler(
+        event_bus=bus,
+        task_database=task_database,
+        max_delay_seconds=300,
+    )
+    await scheduler.start()
 
     register_processor = RegisterProcessor(registry)
     state_change_processor = StateChangeProcessor(registry, history)

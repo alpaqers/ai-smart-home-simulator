@@ -7,6 +7,10 @@ from smart_home.proto.v1 import message_pb2
 class TickEvent:
     timestamp: int
 
+@dataclass
+class TaskDueEvent:
+    task_id: int
+
 
 @dataclass
 class DeviceStateChangeEvent:
@@ -37,3 +41,7 @@ class DeviceRegisterEvent:
     capabilities: dict[str, str]
     device_state: dict[str, str]
     timestamp: int
+
+@dataclass
+class TaskDueEvent:
+    task_id: int
