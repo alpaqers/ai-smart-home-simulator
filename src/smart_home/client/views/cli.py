@@ -37,8 +37,7 @@ async def run_cli(
             await _add_device(device_storage, connection_storage, logger, bus)
 
         elif choice == "3":
-            pass
-        #    await asyncio.to_thread(_change_device_state, storage, writer, logger)
+            await _change_device_state(device_storage, connection_storage, logger)
 
         elif choice == "4":
             await asyncio.to_thread(_show_logs, logger)

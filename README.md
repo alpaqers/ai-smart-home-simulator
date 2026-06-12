@@ -45,6 +45,30 @@ deactivate
 
 ---
 
+# Frontends (CLI or Web)
+
+The client supports two interchangeable frontends. The default is the CLI.
+
+Start the server first, then pick a frontend for the client:
+
+```bash
+# CLI (default)
+python src/main_client.py
+
+# Web frontend (Django)
+python src/main_client.py --frontend web
+```
+
+Once the web frontend starts, open `http://127.0.0.1:8000` in a browser to add
+devices, view their live state, and update parameters. Override the bind
+address with the `WEB_HOST` / `WEB_PORT` environment variables if needed.
+
+Both frontends reuse the exact same client models and controllers; only the
+view layer differs (`src/smart_home/client/views/cli.py` vs.
+`src/smart_home/client/views/web/`).
+
+---
+
 # Regenerate Protobuf (after changing `message.proto`)
 
 ```bash

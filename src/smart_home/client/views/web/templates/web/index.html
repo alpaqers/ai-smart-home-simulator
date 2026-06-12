@@ -1,0 +1,87 @@
+{% extends "web/base.html" %}
+{% load static %}
+
+{% block title %}Devices - Smart Home{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div>
+        <h1>Devices</h1>
+        <p class="muted">Live view of every registered device. State refreshes automatically.</p>
+    </div>
+    <form class="filter" method="get">
+        <select name="type" onchange="this.form.submit()">
+            <option value="" {% if not filter_type %}selected{% endif %}>All types</option>
+            {% for t in device_types %}
+            <option value="{{ t }}" {% if filter_type == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</section>
+
+{% if devices %}
+<div class="grid" id="device-grid">
+    {% for device in devices %}
+    <article class="card" data-device-id="{{ device.device_id }}" data-device-type="{{ device.device_type }}">
+        <div class="card-head">
+            <span class="badge badge-{{ device.device_type }}">{{ device.device_type }}</span>
+            <span class="device-id">#{{ device.device_id }}</span>
+        </div>
+
+        <div class="card-section">
+            <h3>State</h3>
+            <dl class="kv state-list">
+                {% for key, value in device.device_state.items %}
+                <div class="kv-row" data-key="{{ key }}">
+                    <dt>{{ key }}</dt>
+                    <dd class="state-value">{{ value }}</dd>
+                </div>
+                {% empty %}
+                <p class="muted small">No state reported yet.</p>
+                {% endfor %}
+            </dl>
+        </div>
+
+        {% if device.capabilities %}
+        <div class="card-section">
+            <h3>Capabilities</h3>
+            <dl class="kv">
+                {% for key, value in device.capabilities.items %}
+                <div class="kv-row">
+                    <dt>{{ key }}</dt>
+                    <dd>{{ value }}</dd>
+                </div>
+                {% endfor %}
+            </dl>
+        </div>
+        {% endif %}
+
+        {% if device.state_fields %}
+        <form class="card-section update-form" method="post"
+              action="{% url 'update_device' device.device_id %}">
+            {% csrf_token %}
+            <h3>Update state</h3>
+            {% for field in device.state_fields %}
+            <label class="field">
+                <span>{{ field }}</span>
+                <input type="text" name="{{ field }}" placeholder="new value">
+            </label>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary btn-block">Apply</button>
+        </form>
+        {% endif %}
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+    <h2>No devices yet</h2>
+    <p class="muted">Add your first device to start simulating your smart home.</p>
+    <a class="btn btn-primary" href="{% url 'add_device' %}">+ Add device</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'web/app.js' %}"></script>
+{% endblock %}

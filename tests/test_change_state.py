@@ -1,11 +1,19 @@
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
 from smart_home.server.events import DeviceStateChangeEvent
+from smart_home.server.message_handler import decode_wire_message, parse_envelope
 from smart_home.server.processors import StateChangeProcessor
 from smart_home.server.registry import DeviceRegistry, RegisteredDevice
 from smart_home.server.state_history import DeviceStateHistory, StateChangeRecord
+
+
+def _mock_writer() -> Mock:
+    writer = Mock()
+    writer.write = Mock()
+    writer.drain = AsyncMock()
+    return writer
 
 
 @pytest.mark.asyncio
@@ -37,7 +45,7 @@ async def test_state_change_processor_appends_record_when_device_registered() ->
     registry = DeviceRegistry()
     history = DeviceStateHistory()
     processor = StateChangeProcessor(registry, history)
-    writer = Mock()
+    writer = _mock_writer()
 
     await registry.register(
         RegisteredDevice(
@@ -74,13 +82,25 @@ async def test_state_change_processor_appends_record_when_device_registered() ->
     assert rec.device_type == 3
     assert rec.parameters == {"temperature": "25"}
 
+    writer.write.assert_called_once()
+    writer.drain.assert_awaited_once()
+    sent_request_id, sent_proto_bytes = decode_wire_message(writer.write.call_args.args[0])
+    sent_envelope = parse_envelope(sent_proto_bytes)
+    assert sent_request_id == "test-request-1"
+    assert sent_envelope.WhichOneof("payload") == "device_state_change_resp"
+    resp = sent_envelope.device_state_change_resp
+    assert resp.device_id == 1
+    assert resp.success is True
+    assert resp.timestamp == 200
+    assert resp.message == "State change recorded: {'temperature': '25'}"
+
 
 @pytest.mark.asyncio
 async def test_state_change_processor_appends_multiple_events_in_order() -> None:
     registry = DeviceRegistry()
     history = DeviceStateHistory()
     processor = StateChangeProcessor(registry, history)
-    writer = Mock()
+    writer = _mock_writer()
 
     await registry.register(
         RegisteredDevice(
@@ -124,7 +144,7 @@ async def test_state_change_processor_does_not_append_when_device_not_registered
     registry = DeviceRegistry()
     history = DeviceStateHistory()
     processor = StateChangeProcessor(registry, history)
-    writer = Mock()
+    writer = _mock_writer()
 
     event = DeviceStateChangeEvent(
         device_id=99,
@@ -138,3 +158,11 @@ async def test_state_change_processor_does_not_append_when_device_not_registered
     await processor.handle(event)
 
     assert await history.history_for(99) == []
+
+    writer.write.assert_called_once()
+    writer.drain.assert_awaited_once()
+    sent_request_id, sent_proto_bytes = decode_wire_message(writer.write.call_args.args[0])
+    sent_envelope = parse_envelope(sent_proto_bytes)
+    assert sent_request_id == "test-request-4"
+    assert sent_envelope.device_state_change_resp.success is False
+    assert sent_envelope.device_state_change_resp.message == "Device 99 not registered"
