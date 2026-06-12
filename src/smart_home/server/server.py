@@ -37,8 +37,8 @@ async def start_server() -> None:
     )
     await scheduler.start()
 
-    register_processor = RegisterProcessor(registry)
-    state_change_processor = StateChangeProcessor(registry, history)
+    register_processor = RegisterProcessor(registry, time_service)
+    state_change_processor = StateChangeProcessor(registry, history, time_service)
     response_processor = ResponseProcessor()
     time_shift_processor = TimeShiftProcessor(time_service)
 
@@ -47,7 +47,11 @@ async def start_server() -> None:
     await bus.subscribe(DeviceStateChangeRespEvent, response_processor.handle)
     await bus.subscribe(TimeShiftEvent, time_shift_processor.handle)
 
-    tick_emitter = TickEmitter(bus, interval_seconds=TICK_INTERVAL_SECONDS)
+    tick_emitter = TickEmitter(
+        bus,
+        interval_seconds=TICK_INTERVAL_SECONDS,
+        time_service=time_service,
+    )
     tick_emitter.start()
 
     server = await asyncio.start_server(

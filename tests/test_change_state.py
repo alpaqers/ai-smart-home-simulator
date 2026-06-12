@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -7,6 +8,13 @@ from smart_home.server.message_handler import decode_wire_message, parse_envelop
 from smart_home.server.processors import StateChangeProcessor
 from smart_home.server.registry import DeviceRegistry, RegisteredDevice
 from smart_home.server.state_history import DeviceStateHistory, StateChangeRecord
+from smart_home.server.time_service import TimeService
+
+
+def _time_service_at(timestamp: int) -> TimeService:
+    time_service = TimeService()
+    time_service.use_simulated_time(datetime.fromtimestamp(timestamp))
+    return time_service
 
 
 def _mock_writer() -> Mock:
@@ -44,7 +52,7 @@ async def test_device_state_history_append_and_history_for() -> None:
 async def test_state_change_processor_appends_record_when_device_registered() -> None:
     registry = DeviceRegistry()
     history = DeviceStateHistory()
-    processor = StateChangeProcessor(registry, history)
+    processor = StateChangeProcessor(registry, history, _time_service_at(200))
     writer = _mock_writer()
 
     await registry.register(
@@ -99,7 +107,7 @@ async def test_state_change_processor_appends_record_when_device_registered() ->
 async def test_state_change_processor_appends_multiple_events_in_order() -> None:
     registry = DeviceRegistry()
     history = DeviceStateHistory()
-    processor = StateChangeProcessor(registry, history)
+    processor = StateChangeProcessor(registry, history, _time_service_at(200))
     writer = _mock_writer()
 
     await registry.register(
@@ -143,7 +151,7 @@ async def test_state_change_processor_appends_multiple_events_in_order() -> None
 async def test_state_change_processor_does_not_append_when_device_not_registered() -> None:
     registry = DeviceRegistry()
     history = DeviceStateHistory()
-    processor = StateChangeProcessor(registry, history)
+    processor = StateChangeProcessor(registry, history, _time_service_at(200))
     writer = _mock_writer()
 
     event = DeviceStateChangeEvent(

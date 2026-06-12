@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -7,6 +8,7 @@ from smart_home.server.events import DeviceRegisterEvent
 from smart_home.server.message_handler import msg_to_event, parse_envelope, decode_wire_message
 from smart_home.server.processors import RegisterProcessor
 from smart_home.server.registry import DeviceRegistry, RegisteredDevice
+from smart_home.server.time_service import TimeService
 
 
 def test_msg_to_event_maps_device_register_req() -> None:
@@ -80,7 +82,9 @@ async def test_registry_register_and_unregister_by_writer() -> None:
 @pytest.mark.asyncio
 async def test_register_processor_registers_device_and_sends_response() -> None:
     registry = DeviceRegistry()
-    processor = RegisterProcessor(registry)
+    time_service = TimeService()
+    time_service.use_simulated_time(datetime.fromtimestamp(999))
+    processor = RegisterProcessor(registry, time_service)
 
     writer = Mock()
     writer.write = Mock()

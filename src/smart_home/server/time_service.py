@@ -31,6 +31,11 @@ class TimeService:
         """Returns current time as unix timestamp for protobuf."""
         return int(self.now().timestamp())
 
+    def advance_seconds(self, seconds: float) -> None:
+        """Advance simulated clock by the given interval (no-op in real-time mode)."""
+        if self._simulated:
+            self._simulated_time += timedelta(seconds=seconds)
+
     def is_simulated(self) -> bool:
         """Returns True if using simulated time."""
         return self._simulated
