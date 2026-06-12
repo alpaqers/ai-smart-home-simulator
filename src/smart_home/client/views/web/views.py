@@ -16,7 +16,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
-from ...controllers.connection_controller import add_connection, get_connection
+from ...controllers.connection_controller import add_connection
 from ...controllers.connection_handler import ConnectionHandler
 from ...controllers.device_controller import (
     get_all_devices,
@@ -25,7 +25,7 @@ from ...controllers.device_controller import (
 )
 from ...controllers.device_factory import create_device
 from ...controllers.device_registry import add_device_to_storage
-from ...controllers.message_coder import encode_state_change
+from ...controllers.device_service import send_state_change
 from ...controllers.message_sender import register_device
 from ...models.device import _CAPABILITIES_SCHEMA, _STATE_SCHEMA, Device
 from ....common.config_loader import SERVER_HOST, SERVER_PORT
@@ -83,19 +83,6 @@ async def _orchestrate_add(
 
     ctx.logger.info(msg) if ok else ctx.logger.error(msg)
     return device, msg
-
-
-async def _orchestrate_state_change(device: Device, new_state: dict[str, str]) -> None:
-    """Send a state change to the server over the device's own connection."""
-
-    ctx = get_context()
-    handler = get_connection(ctx.connection_storage, device.device_id)
-    if handler is None:
-        ctx.logger.error(f"No active connection for device {device.device_id}.")
-        return
-
-    payload = encode_state_change(device.device_id, new_state, device.device_type)
-    await handler.send_and_wait(payload)
 
 
 def dashboard(request):
@@ -170,10 +157,11 @@ def update_device(request, device_id: int):
         success, message = update_device_state(ctx.device_storage, device_id, new_state)
         if success:
             try:
-                call_async(_orchestrate_state_change(device, new_state))
-                ctx.logger.info(f"State change sent: device={device_id} state={new_state}")
+                call_async(
+                    send_state_change(ctx.connection_storage, device, new_state, ctx.logger)
+                )
             except Exception as exc:  # pragma: no cover - surfaced to the user
-                ctx.logger.error(f"Failed to send state change: {exc}")
+                ctx.logger.error(f"Failed to send state change for device {device_id}: {exc}")
         else:
             ctx.logger.error(message)
 

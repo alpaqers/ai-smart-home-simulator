@@ -19,7 +19,7 @@ class DeviceStateChangeEvent:
 
 
 @dataclass
-class DeviceResponseEvent:
+class DeviceStateChangeRespEvent:
     device_id: int
     writer: StreamWriter
     request_id: str

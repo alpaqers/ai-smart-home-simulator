@@ -22,8 +22,8 @@ def build_envelope(message) -> bytes:
         envelope.device_state_change.CopyFrom(message)
     elif isinstance(message, message_pb2.DeviceStateUpdate):
         envelope.device_state_update.CopyFrom(message)
-    elif isinstance(message, message_pb2.DeviceResponse):
-        envelope.device_response.CopyFrom(message)
+    elif isinstance(message, message_pb2.DeviceStateChangeResp):
+        envelope.device_state_change_resp.CopyFrom(message)
     elif isinstance(message, message_pb2.DeviceRegisterReq):
         envelope.device_register_req.CopyFrom(message)
     elif isinstance(message, message_pb2.DeviceRegisterResp):
@@ -75,6 +75,13 @@ def decode_register_response(response_b64: str) -> message_pb2.DeviceRegisterRes
     if envelope is None or envelope.WhichOneof("payload") != "device_register_resp":
         return None
     return envelope.device_register_resp
+
+
+def decode_state_change_response(response_b64: str) -> message_pb2.DeviceStateChangeResp | None:
+    envelope = _decode_envelope(response_b64)
+    if envelope is None or envelope.WhichOneof("payload") != "device_state_change_resp":
+        return None
+    return envelope.device_state_change_resp
 
 
 def encode_state_change(device_id: int, parameters: dict[str, str], device_type: str | int) -> str:

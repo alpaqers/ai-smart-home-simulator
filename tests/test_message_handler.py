@@ -18,11 +18,11 @@ def test_handle_message_recognizes_state_change():
     assert handle_message(envelope) == "device_state_change"
 
 
-def test_handle_message_recognizes_device_response():
+def test_handle_message_recognizes_device_state_change_resp():
     envelope = message_pb2.Envelope()
-    envelope.device_response.device_id = 2
+    envelope.device_state_change_resp.device_id = 2
 
-    assert handle_message(envelope) == "device_response"
+    assert handle_message(envelope) == "device_state_change_resp"
 
 
 def test_full_flow_device_state_change():
@@ -37,8 +37,8 @@ def test_full_flow_device_state_change():
     assert result == "device_state_change"
 
 
-def test_full_flow_device_response():
-    msg = message_pb2.DeviceResponse()
+def test_full_flow_device_state_change_resp():
+    msg = message_pb2.DeviceStateChangeResp()
     msg.device_id = 2
     msg.success = True
     msg.message = "Light turned on"
@@ -47,4 +47,4 @@ def test_full_flow_device_response():
     envelope = parse_envelope(data)
     result = handle_message(envelope)
 
-    assert result == "device_response"
+    assert result == "device_state_change_resp"

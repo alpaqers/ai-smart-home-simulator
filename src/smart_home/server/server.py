@@ -5,7 +5,7 @@ from smart_home.common.config_loader import HOST, PORT, TICK_INTERVAL_SECONDS
 from smart_home.server.event_bus import EventBus
 from smart_home.server.events import (
     DeviceRegisterEvent,
-    DeviceResponseEvent,
+    DeviceStateChangeRespEvent,
     DeviceStateChangeEvent,
 )
 from smart_home.server.processors import (
@@ -28,7 +28,7 @@ async def start_server() -> None:
 
     await bus.subscribe(DeviceRegisterEvent, register_processor.handle)
     await bus.subscribe(DeviceStateChangeEvent, state_change_processor.handle)
-    await bus.subscribe(DeviceResponseEvent, response_processor.handle)
+    await bus.subscribe(DeviceStateChangeRespEvent, response_processor.handle)
 
     tick_emitter = TickEmitter(bus, interval_seconds=TICK_INTERVAL_SECONDS)
     tick_emitter.start()
