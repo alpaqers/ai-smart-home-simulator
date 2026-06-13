@@ -7,6 +7,7 @@ from .controllers.logger_controller import LoggerController
 from .models.device_storage import DeviceStorage
 from .views.cli import run_cli
 from .controllers.logger_service import LoggerService
+from .controllers.time_service import TimeService
 from .views.web.runtime import run_web
 
 
@@ -23,12 +24,13 @@ async def start_client(frontend: str = "cli") -> None:
     await logger_ctrl.start()
     logger_ctrl.create_session()
     logger = LoggerService(logger_ctrl)
+    time_service = TimeService()
 
     try:
         if frontend == "web":
             await run_web(logger, device_storage, connection_storage, bus)
         else:
-            await run_cli(logger, device_storage, connection_storage, bus)
+            await run_cli(logger, device_storage, connection_storage, bus, time_service)
     finally:
         await bus.stop()
         await logger_ctrl.stop()

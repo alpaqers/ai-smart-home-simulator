@@ -3,17 +3,25 @@ from smart_home.server.registry import DeviceRegistry
 from smart_home.server.events import DeviceStateChangeEvent
 from smart_home.server.message_handler import build_envelope, encode_wire_message
 from smart_home.server.state_history import DeviceStateHistory, StateChangeRecord
+from smart_home.server.time_service import TimeService
 
 
 class StateChangeProcessor:
-    def __init__(self, registry: DeviceRegistry, history: DeviceStateHistory) -> None:
+    def __init__(
+        self,
+        registry: DeviceRegistry,
+        history: DeviceStateHistory,
+        time_service: TimeService,
+    ) -> None:
         self._registry = registry
         self._history = history
+        self._time_service = time_service
 
     async def handle(self, event: DeviceStateChangeEvent) -> None:
+        server_timestamp = self._time_service.now_as_timestamp()
         response = message_pb2.DeviceStateChangeResp()
         response.device_id = event.device_id
-        response.timestamp = event.timestamp
+        response.timestamp = server_timestamp
 
         if not await self._registry.is_registered(event.device_id):
             print(f"[StateChangeProcessor] Device {event.device_id} not registered")

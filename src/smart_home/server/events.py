@@ -42,6 +42,14 @@ class DeviceRegisterEvent:
     device_state: dict[str, str]
     timestamp: int
 
+
 @dataclass
-class TaskDueEvent:
-    task_id: int
+class TimeShiftEvent:
+    request_id: str
+    writer: StreamWriter
+    year: int
+    month: int
+    day: int
+    hour: int
+    minute: int
+    second: int
