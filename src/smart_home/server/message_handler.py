@@ -41,6 +41,8 @@ def build_envelope(message) -> bytes:
         envelope.device_register_resp.CopyFrom(message)
     elif isinstance(message, message_pb2.TimeShiftRequest):
         envelope.time_shift_request.CopyFrom(message)
+    elif isinstance(message, message_pb2.TimeShiftResp):
+        envelope.time_shift_resp.CopyFrom(message)
     else:
         raise ValueError(f"Unsupported message type: {type(message).__name__}")
     
@@ -113,6 +115,12 @@ def handle_message(envelope: message_pb2.Envelope):
     elif msg_type == "time_shift_request":
         msg = envelope.time_shift_request
         print(f"Time shift request: {msg.year}-{msg.month}-{msg.day} {msg.hour}:{msg.minute}:{msg.second}")
+
+    elif msg_type == "time_shift_resp":
+        msg = envelope.time_shift_resp
+        status = "OK" if msg.success else "FAILED"
+        detail = msg.cause if msg.cause else str(msg.timestamp)
+        print(f"Time shift response: {status} - {detail}")
 
     else:
         print(f"Unknown message type: {msg_type}")
