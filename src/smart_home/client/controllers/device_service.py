@@ -1,18 +1,19 @@
 import asyncio
 
 from ..models.connection_storage import ConnectionStorage
-from .connection_controller import add_connection
+from .connection_controller import add_connection, get_connection
 from .connection_handler import ConnectionHandler
 from .message_sender import register_device
-from ..controllers.message_coder import encode_state_change
+from ..controllers.message_coder import decode_state_change_response, encode_state_change
 from ..controllers.device_controller import get_devices_by_type, get_all_devices
 from ..controllers.device_registry import add_device_to_storage
 from ..controllers.logger_service import LoggerService
 from ..models.device_storage import DeviceStorage
 from .device_controller import update_device_state
-from ..models.device import _STATE_SCHEMA, _CAPABILITIES_SCHEMA
+from ..models.device import Device, _STATE_SCHEMA, _CAPABILITIES_SCHEMA
 from ..controllers.device_factory import create_device
 from ..controllers.event_handler import EventHandler
+from ..controllers.time_service import TimeService
 from ...common.config_loader import SERVER_HOST, SERVER_PORT
 
 def _show_devices(storage: DeviceStorage) -> None:
@@ -33,7 +34,13 @@ def _show_devices(storage: DeviceStorage) -> None:
         print(f"  [{device.device_id}]  type={device.device_type}  state={device.device_state}")
 
 
-async def _add_device(device_storage: DeviceStorage, connection_storage: ConnectionStorage, logger: LoggerService, bus: EventHandler) -> None:
+async def _add_device(
+    device_storage: DeviceStorage,
+    connection_storage: ConnectionStorage,
+    logger: LoggerService,
+    bus: EventHandler,
+    time_service: TimeService | None = None,
+) -> None:
     print("\n── Add Device ───────────────────────────────")
 
     device_type = (await asyncio.to_thread(input, "Device type: ")).strip().lower()
@@ -51,7 +58,7 @@ async def _add_device(device_storage: DeviceStorage, connection_storage: Connect
     handler.event_callback = bus.put_event
     await handler.start()
 
-    registered_id = await register_device(handler, device_type, capabilities, device_state)
+    registered_id = await register_device(handler, device_type, capabilities, device_state, time_service)
     if registered_id is None:
         print(f"Failed to register device with type '{device_type}'.")
         logger.error(f"Failed to register device with type '{device_type}'.")
@@ -68,14 +75,50 @@ async def _add_device(device_storage: DeviceStorage, connection_storage: Connect
     return
 
 
-def _change_device_state(
+async def send_state_change(
+    connection_storage: ConnectionStorage,
+    device: Device,
+    new_state: dict[str, str],
+    logger: LoggerService,
+    time_service: TimeService | None = None,
+) -> tuple[bool, str]:
+    """Send a state change to the server over the device's own connection."""
+
+    handler = get_connection(connection_storage, device.device_id)
+    if handler is None:
+        msg = f"No active connection for device {device.device_id}."
+        logger.error(msg)
+        return False, msg
+
+    payload = encode_state_change(device.device_id, new_state, device.device_type, time_service)
+    try:
+        response_b64 = await handler.send_and_wait(payload)
+    except Exception as exc:
+        msg = f"Failed to send state change for device {device.device_id}: {exc}"
+        logger.error(msg)
+        return False, msg
+
+    resp = decode_state_change_response(response_b64)
+    if resp is None or not resp.success:
+        detail = resp.message if resp is not None else "invalid response"
+        msg = f"Failed to send state change for device {device.device_id}: {detail}"
+        logger.error(msg)
+        return False, msg
+
+    msg = f"State change sent: device={device.device_id} state={new_state}"
+    logger.info(msg)
+    return True, msg
+
+
+async def _change_device_state(
     storage: DeviceStorage,
-    writer:  asyncio.StreamWriter,
-    logger:  LoggerService,
+    connection_storage: ConnectionStorage,
+    logger: LoggerService,
+    time_service: TimeService | None = None,
 ) -> None:
     print("\n── Change Device State ──────────────────────")
 
-    raw_id = input("Device ID: ").strip()
+    raw_id = (await asyncio.to_thread(input, "Device ID: ")).strip()
 
     try:
         device_id = int(raw_id)
@@ -92,10 +135,11 @@ def _change_device_state(
     print(f"Device type: {device.device_type}")
     print(f"Current state: {device.device_state}")
 
-    new_state = _prompt_fields(
+    new_state = await asyncio.to_thread(
+        _prompt_fields,
         "New state (leave blank to skip)",
         _STATE_SCHEMA.get(device.device_type.lower(), []),
-        optional=True,
+        True,
     )
 
     if not new_state:
@@ -108,17 +152,12 @@ def _change_device_state(
         new_state=new_state,
     )
     if not success:
-        print(f"{message}")
+        print(message)
         logger.error(message)
         return
 
-    payload = encode_state_change(device_id, new_state, device.device_type)
-    if isinstance(payload, str):
-        payload = payload.encode("utf-8")
-    writer.write(len(payload).to_bytes(4, "big") + payload)
-
-    logger.info(f"State change sent: device={device_id} state={new_state}")
-    print("State change sent.")
+    _, msg = await send_state_change(connection_storage, device, new_state, logger, time_service)
+    print(msg)
 
 
 def _prompt_fields(label: str, fields: list[str], optional: bool = False) -> dict[str, str]:

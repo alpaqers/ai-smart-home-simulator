@@ -51,15 +51,15 @@ def test_device_state_update_serialization():
     assert received.parameters["time"] == "16:00"
 
 
-def test_device_response_serialization():
-    ack = message_pb2.DeviceResponse()
+def test_device_state_change_resp_serialization():
+    ack = message_pb2.DeviceStateChangeResp()
     ack.device_id = 1
     ack.timestamp = TIMESTAMP
     ack.success = True
     ack.message = "Swiatlo zapalone o 16:00"
 
     data = ack.SerializeToString()
-    received = message_pb2.DeviceResponse()
+    received = message_pb2.DeviceStateChangeResp()
     received.ParseFromString(data)
 
     assert received.device_id == 1

@@ -2,8 +2,12 @@ import base64
 from asyncio import StreamWriter
 
 from smart_home.proto.v1 import message_pb2
-from smart_home.server.events import DeviceStateChangeEvent, DeviceResponseEvent, DeviceRegisterEvent
-
+from smart_home.server.events import (
+    DeviceStateChangeEvent,
+    DeviceStateChangeRespEvent,
+    DeviceRegisterEvent,
+    TimeShiftEvent,
+)
 
 def decode_wire_message(raw: bytes) -> tuple[str, bytes]:
     line = raw.decode("utf-8").strip()
@@ -29,12 +33,16 @@ def build_envelope(message) -> bytes:
         envelope.device_state_change.CopyFrom(message)
     elif isinstance(message, message_pb2.DeviceStateUpdate):
         envelope.device_state_update.CopyFrom(message)
-    elif isinstance(message, message_pb2.DeviceResponse):
-        envelope.device_response.CopyFrom(message)
+    elif isinstance(message, message_pb2.DeviceStateChangeResp):
+        envelope.device_state_change_resp.CopyFrom(message)
     elif isinstance(message, message_pb2.DeviceRegisterReq):
         envelope.device_register_req.CopyFrom(message)
     elif isinstance(message, message_pb2.DeviceRegisterResp):
         envelope.device_register_resp.CopyFrom(message)
+    elif isinstance(message, message_pb2.TimeShiftRequest):
+        envelope.time_shift_request.CopyFrom(message)
+    elif isinstance(message, message_pb2.TimeShiftResp):
+        envelope.time_shift_resp.CopyFrom(message)
     else:
         raise ValueError(f"Unsupported message type: {type(message).__name__}")
     
@@ -43,7 +51,7 @@ def build_envelope(message) -> bytes:
 
 def msg_to_event(
     envelope: message_pb2.Envelope, writer: StreamWriter, request_id: str = ""
-) -> DeviceStateChangeEvent | DeviceResponseEvent | DeviceRegisterEvent | None:
+) -> DeviceStateChangeEvent | DeviceStateChangeRespEvent | DeviceRegisterEvent | TimeShiftEvent | None:
     msg_type = envelope.WhichOneof("payload")
 
     if msg_type == "device_state_change":
@@ -56,9 +64,9 @@ def msg_to_event(
             device_type=msg.device_type,
             parameters=dict(msg.parameters),
         )
-    elif msg_type == "device_response":
-        msg = envelope.device_response
-        return DeviceResponseEvent(
+    elif msg_type == "device_state_change_resp":
+        msg = envelope.device_state_change_resp
+        return DeviceStateChangeRespEvent(
             device_id=msg.device_id,
             writer=writer,
             request_id=request_id,
@@ -77,6 +85,18 @@ def msg_to_event(
             device_state=dict(msg.device_state),
             timestamp=msg.timestamp,
         )
+    elif msg_type == "time_shift_request":
+        msg = envelope.time_shift_request
+        return TimeShiftEvent(
+            request_id=request_id,
+            writer=writer,
+            year=msg.year,
+            month=msg.month,
+            day=msg.day,
+            hour=msg.hour,
+            minute=msg.minute,
+            second=msg.second,
+        )
     return None
 
 
@@ -87,10 +107,20 @@ def handle_message(envelope: message_pb2.Envelope):
         msg = envelope.device_state_change
         print(f"Device {msg.device_id} state change: {dict(msg.parameters)}")
 
-    elif msg_type == "device_response":
-        msg = envelope.device_response
+    elif msg_type == "device_state_change_resp":
+        msg = envelope.device_state_change_resp
         status = "OK" if msg.success else "FAILED"
-        print(f"Device {msg.device_id} response: {status} - {msg.message}")
+        print(f"Device {msg.device_id} state change response: {status} - {msg.message}")
+
+    elif msg_type == "time_shift_request":
+        msg = envelope.time_shift_request
+        print(f"Time shift request: {msg.year}-{msg.month}-{msg.day} {msg.hour}:{msg.minute}:{msg.second}")
+
+    elif msg_type == "time_shift_resp":
+        msg = envelope.time_shift_resp
+        status = "OK" if msg.success else "FAILED"
+        detail = msg.cause if msg.cause else str(msg.timestamp)
+        print(f"Time shift response: {status} - {detail}")
 
     else:
         print(f"Unknown message type: {msg_type}")

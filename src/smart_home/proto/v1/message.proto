@@ -16,7 +16,7 @@ message DeviceStateUpdate {
 	map<string, string> parameters = 4;
 }
 
-message DeviceResponse {
+message DeviceStateChangeResp {
 	int32 device_id = 1;
 	int64 timestamp = 2;
 	bool success = 3;
@@ -38,12 +38,29 @@ message DeviceRegisterResp {
 	optional string cause = 4;
 }
 
+message TimeShiftRequest {
+    int32 year = 1;
+    int32 month = 2;
+    int32 day = 3;
+    int32 hour = 4;
+    int32 minute = 5;
+    int32 second = 6;
+}
+
+message TimeShiftResp {
+    bool success = 1;
+    int64 timestamp = 2;
+    optional string cause = 3;
+}
+
 message Envelope {
     oneof payload {
         DeviceStateChange device_state_change = 1;
         DeviceStateUpdate device_state_update = 2;
-        DeviceResponse device_response = 3;
+        DeviceStateChangeResp device_state_change_resp = 3;
         DeviceRegisterReq device_register_req = 4;
         DeviceRegisterResp device_register_resp = 5;
+		TimeShiftRequest time_shift_request = 6;
+		TimeShiftResp time_shift_resp = 7;
     }
 }
