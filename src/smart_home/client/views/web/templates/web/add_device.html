@@ -1,0 +1,84 @@
+{% extends "web/base.html" %}
+
+{% block title %}Add device - Smart Home{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div>
+        <h1>Add a device</h1>
+        <p class="muted">Pick a type; the form adapts to that device's capabilities and state.</p>
+    </div>
+</section>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+<form class="panel form" method="post" action="{% url 'add_device' %}">
+    {% csrf_token %}
+
+    <label class="field">
+        <span>Device type</span>
+        <select name="device_type" id="device-type" required>
+            <option value="" disabled selected>Select a type…</option>
+            {% for t in device_types %}
+            <option value="{{ t }}">{{ t }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <div class="form-group" id="capabilities-group" hidden>
+        <h3>Capabilities</h3>
+        <div id="capabilities-fields" class="fields"></div>
+    </div>
+
+    <div class="form-group" id="state-group" hidden>
+        <h3>Initial state</h3>
+        <div id="state-fields" class="fields"></div>
+    </div>
+
+    <div class="form-actions">
+        <a class="btn" href="{% url 'dashboard' %}">Cancel</a>
+        <button type="submit" class="btn btn-primary">Add device</button>
+    </div>
+</form>
+
+<script id="schema-data" type="application/json">{{ schema_json|safe }}</script>
+<script>
+    (function () {
+        const schema = JSON.parse(document.getElementById("schema-data").textContent);
+        const typeSelect = document.getElementById("device-type");
+        const capGroup = document.getElementById("capabilities-group");
+        const stateGroup = document.getElementById("state-group");
+        const capFields = document.getElementById("capabilities-fields");
+        const stateFields = document.getElementById("state-fields");
+
+        function buildFields(container, fields, prefix) {
+            container.innerHTML = "";
+            fields.forEach(function (name) {
+                const label = document.createElement("label");
+                label.className = "field";
+                const span = document.createElement("span");
+                span.textContent = name;
+                const input = document.createElement("input");
+                input.type = "text";
+                input.name = prefix + name;
+                label.appendChild(span);
+                label.appendChild(input);
+                container.appendChild(label);
+            });
+        }
+
+        typeSelect.addEventListener("change", function () {
+            const def = schema[typeSelect.value];
+            if (!def) { return; }
+
+            buildFields(capFields, def.capabilities, "cap_");
+            buildFields(stateFields, def.state, "state_");
+
+            capGroup.hidden = def.capabilities.length === 0;
+            stateGroup.hidden = def.state.length === 0;
+        });
+    })();
+</script>
+{% endblock %}

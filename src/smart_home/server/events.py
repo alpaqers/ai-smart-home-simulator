@@ -2,6 +2,16 @@ from asyncio import StreamWriter
 from dataclasses import dataclass
 from smart_home.proto.v1 import message_pb2
 
+
+@dataclass
+class TickEvent:
+    timestamp: int
+
+@dataclass
+class TaskDueEvent:
+    task_id: int
+
+
 @dataclass
 class DeviceStateChangeEvent:
     device_id: int
@@ -13,7 +23,7 @@ class DeviceStateChangeEvent:
 
 
 @dataclass
-class DeviceResponseEvent:
+class DeviceStateChangeRespEvent:
     device_id: int
     writer: StreamWriter
     request_id: str
@@ -31,3 +41,7 @@ class DeviceRegisterEvent:
     capabilities: dict[str, str]
     device_state: dict[str, str]
     timestamp: int
+
+@dataclass
+class TaskDueEvent:
+    task_id: int

@@ -26,7 +26,7 @@ async def handle_client(reader: StreamReader, writer: StreamWriter, registry: De
             await bus.publish(event)
 
     except Exception as e:
-            print(f"[handle_client] Error: {e}")
+        print(f"[handle_client] Error: {e}")
 
     finally:
         await registry.unregister_by_writer(writer)

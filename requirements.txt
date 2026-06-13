@@ -1,4 +1,6 @@
 grpcio>=1.60.0
+grpcio-tools>=1.60.0
 protobuf>=6.31.1,<7.0.0
 pytest>=8.0.0
 pytest-asyncio>=0.23.0
+Django>=5.0,<6.0

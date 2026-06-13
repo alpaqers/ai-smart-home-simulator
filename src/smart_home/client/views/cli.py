@@ -1,21 +1,13 @@
-"""
-TBD:
-handlers = {
-        "1": lambda: show_devices(store),
-        "2": lambda: add_device(store, logger, device_type),
-        "3": lambda: change_device_state(store, logger, writer),
-        "4": lambda: show_logs(logger),
-    }
-"""
 
 from __future__ import annotations
 
 import asyncio
-from asyncio import StreamWriter
 
+from ..controllers.event_handler import EventHandler
+from ..models.connection_storage import ConnectionStorage
 from ..controllers.logger_service import LoggerService, _show_logs
 from ..controllers.device_service import _show_devices, _change_device_state, _add_device
-from ..models.containers import DeviceStorage
+from ..models.device_storage import DeviceStorage
 
 _MENU = """
 ┌──────────────────────────────┐
@@ -30,21 +22,22 @@ _MENU = """
 
 
 async def run_cli(
-        writer: StreamWriter,
         logger: LoggerService,
-        storage: DeviceStorage,
+        device_storage: DeviceStorage,
+        connection_storage: ConnectionStorage,
+        bus: EventHandler
 ) -> None:
     while True:
         choice = await asyncio.to_thread(input, _MENU + "\n› ")
 
         if choice == "1":
-            await asyncio.to_thread(_show_devices, storage)
+            await asyncio.to_thread(_show_devices, device_storage)
 
         elif choice == "2":
-            await asyncio.to_thread(_add_device, storage, logger)
+            await _add_device(device_storage, connection_storage, logger, bus)
 
         elif choice == "3":
-            await asyncio.to_thread(_change_device_state, storage, writer, logger)
+            await _change_device_state(device_storage, connection_storage, logger)
 
         elif choice == "4":
             await asyncio.to_thread(_show_logs, logger)

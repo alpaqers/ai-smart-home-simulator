@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from ..models.containers import DeviceStorage
-from ..models.events import StorageEvent
+from models.events import StorageEvent
+from .device_controller import save_device, update_device_state
 from .persistence import save_event_to_file
+from ..models.device_storage import DeviceStorage
 from .time_service import TimeService
-from ..controllers.device_storage import update_device_state, add_device_to_storage
 from . import message_coder
 
 
@@ -24,11 +24,12 @@ class ClientEventRouter:
             return self._handle_state_update(event_data)
         elif event_data.startswith("DEVICE_REGISTRATION:"):
             return self._handle_device_registration(event_data)
-        elif self._handle_time_shift(event_data):  
+        elif self._handle_time_shift(event_data):
             return True
         else:
             print(f"WARN: Unknown event: {event_data}")
             return False
+
     def _handle_state_update(self, event_data: str) -> bool:
         state_update = message_coder.decode_state_update_message(event_data)
         if state_update is None:
@@ -54,7 +55,7 @@ class ClientEventRouter:
         if new_device is None:
             return False
 
-        success, message = add_device_to_storage(
+        success, message = save_device(
             storage=self._storage,
             device=new_device
         )
