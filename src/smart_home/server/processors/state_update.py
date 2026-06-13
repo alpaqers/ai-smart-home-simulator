@@ -29,10 +29,8 @@ class StateUpdateProcessor:
             command_type=0,
             parameters=task.parameters,
         )
-        if ok:
-            await self._task_database.remove_task(task.task_id)
-        else:
+        if not ok:
             print(
                 f"[StateUpdateProcessor] Device {task.device_id} unreachable, "
-                f"task {task.task_id} stays in DB for retry"
+                f"task {task.task_id} skipped until daily reset"
             )
