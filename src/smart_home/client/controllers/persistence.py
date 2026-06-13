@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import asdict
-from ..models.containers import DeviceStorage
+from ..models.device_storage import DeviceStorage
 from ..models.device import Device
 from ..models.events import StorageEvent
 from .time_service import TimeService
