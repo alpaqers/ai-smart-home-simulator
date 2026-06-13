@@ -5,20 +5,25 @@ from smart_home.common.config_loader import HOST, PORT, TICK_INTERVAL_SECONDS
 from smart_home.server.event_bus import EventBus
 from smart_home.server.scheduler import Scheduler
 from smart_home.server.tasks import TaskDatabase
+from smart_home.server.daily_task_reset import DailyTaskReset
 from smart_home.server.events import (
     DeviceRegisterEvent,
     DeviceStateChangeRespEvent,
     DeviceStateChangeEvent,
+    TaskDueEvent,
+    TickEvent,
     TimeShiftEvent,
 )
 from smart_home.server.processors import (
     RegisterProcessor,
     ResponseProcessor,
     StateChangeProcessor,
+    StateUpdateProcessor,
 )
 from smart_home.server.processors.time_shift import TimeShiftProcessor
 from smart_home.server.registry import DeviceRegistry
 from smart_home.server.state_history import DeviceStateHistory
+from smart_home.server.state_update_sender import StateUpdateSender
 from smart_home.server.tick_emitter import TickEmitter
 from smart_home.server.time_service import TimeService
 
@@ -41,11 +46,16 @@ async def start_server() -> None:
     state_change_processor = StateChangeProcessor(registry, history, time_service)
     response_processor = ResponseProcessor()
     time_shift_processor = TimeShiftProcessor(time_service)
+    state_update_sender = StateUpdateSender(registry)
+    state_update_processor = StateUpdateProcessor(state_update_sender, task_database)
+    daily_task_reset = DailyTaskReset(task_database)
 
     await bus.subscribe(DeviceRegisterEvent, register_processor.handle)
     await bus.subscribe(DeviceStateChangeEvent, state_change_processor.handle)
     await bus.subscribe(DeviceStateChangeRespEvent, response_processor.handle)
     await bus.subscribe(TimeShiftEvent, time_shift_processor.handle)
+    await bus.subscribe(TaskDueEvent, state_update_processor.handle)
+    await bus.subscribe(TickEvent, daily_task_reset.handle)
 
     tick_emitter = TickEmitter(
         bus,

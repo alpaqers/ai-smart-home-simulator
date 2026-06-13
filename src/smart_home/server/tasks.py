@@ -91,6 +91,23 @@ class TaskDatabase:
         async with self._lock:
             return self._tasks_by_id.pop(task_id, None) is not None
 
+    async def reset_dispatched_flags(self) -> int:
+        """Mark all tasks as not dispatched. Returns the number of tasks updated."""
+        async with self._lock:
+            count = 0
+            for task_id, task in list(self._tasks_by_id.items()):
+                if not task.dispatched:
+                    continue
+                self._tasks_by_id[task_id] = ScheduledTask(
+                    task_id=task.task_id,
+                    device_id=task.device_id,
+                    parameters=dict(task.parameters),
+                    time=task.time,
+                    dispatched=False,
+                )
+                count += 1
+            return count
+
 
 def _copy_task(task: ScheduledTask) -> ScheduledTask:
     return ScheduledTask(
