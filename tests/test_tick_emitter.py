@@ -25,7 +25,7 @@ async def test_emit_once_publishes_tick_event() -> None:
 
 
 @pytest.mark.asyncio
-async def test_start_emits_ticks_until_stopped() -> None:
+async def test_start_emits_ticks_until_stopped(monkeypatch: pytest.MonkeyPatch) -> None:
     bus = EventBus()
     events: list[TickEvent] = []
     timestamp = 100
@@ -38,14 +38,21 @@ async def test_start_emits_ticks_until_stopped() -> None:
     async def handle_tick(event: TickEvent) -> None:
         events.append(event)
 
+    real_sleep = asyncio.sleep
+
+    async def instant_sleep(_delay: float) -> None:
+        await real_sleep(0)
+
+    monkeypatch.setattr(asyncio, "sleep", instant_sleep)
+
     await bus.subscribe(TickEvent, handle_tick)
     emitter = TickEmitter(bus, interval_seconds=0.01, time_provider=next_timestamp)
 
     emitter.start()
-    await asyncio.sleep(0.035)
+    await real_sleep(0.035)
     await emitter.stop()
     count_after_stop = len(events)
-    await asyncio.sleep(0.02)
+    await real_sleep(0.02)
 
     assert len(events) >= 2
     assert len(events) == count_after_stop

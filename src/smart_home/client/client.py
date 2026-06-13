@@ -3,15 +3,15 @@ from __future__ import annotations
 from controllers.connection_restore import restore_connections
 from controllers.device_controller import get_all_devices
 from controllers.device_id_allocator import seed_device_id_allocator
-from models.connection_storage import ConnectionStorage
-from views.web.runtime import run_web
-from ..client.controllers.event_handler import EventHandler
-from ..client.controllers.event_router import ClientEventRouter
-from ..client.controllers.logger_controller import LoggerController
-from ..client.views.cli import run_cli
-from ..client.controllers.logger_service import LoggerService
-from ..client.controllers.persistence import load_from_file
-from ..client.controllers.time_service import TimeService
+from controllers.persistence import load_from_file
+from .models.connection_storage import ConnectionStorage
+from .controllers.event_handler import EventHandler
+from .controllers.event_router import ClientEventRouter
+from .controllers.logger_controller import LoggerController
+from .views.cli import run_cli
+from .controllers.logger_service import LoggerService
+from .controllers.time_service import TimeService
+from .views.web.runtime import run_web
 
 
 async def start_client(frontend: str = "cli") -> None:
@@ -43,7 +43,7 @@ async def start_client(frontend: str = "cli") -> None:
         if frontend == "web":
             await run_web(logger, device_storage, connection_storage, bus)
         else:
-            await run_cli(logger, device_storage, connection_storage, bus)
+            await run_cli(logger, device_storage, connection_storage, bus, time_service)
     finally:
         await bus.stop()
         await logger_ctrl.stop()
