@@ -1,4 +1,3 @@
-from datetime import datetime
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -13,7 +12,7 @@ from smart_home.server.time_service import TimeService
 
 def _time_service_at(timestamp: int) -> TimeService:
     time_service = TimeService()
-    time_service.use_simulated_time(datetime.fromtimestamp(timestamp))
+    time_service.use_simulated_epoch(timestamp)
     return time_service
 
 

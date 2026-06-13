@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
 
 from ..controllers.event_handler import EventHandler
 from ..models.connection_storage import ConnectionStorage
@@ -31,7 +30,7 @@ async def _setup_time(time_service: TimeService) -> None:
     if choice.strip().lower() == "y":
         raw = await asyncio.to_thread(input, "Enter simulated time (unix timestamp): ")
         try:
-            time_service.use_simulated_time(datetime.fromtimestamp(int(raw.strip())))
+            time_service.use_simulated_epoch(int(raw.strip()))
             print("Using simulated time.")
         except ValueError:
             print("Invalid timestamp, using real time.")

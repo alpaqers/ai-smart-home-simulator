@@ -1,4 +1,3 @@
-from datetime import datetime
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -83,7 +82,7 @@ async def test_registry_register_and_unregister_by_writer() -> None:
 async def test_register_processor_registers_device_and_sends_response() -> None:
     registry = DeviceRegistry()
     time_service = TimeService()
-    time_service.use_simulated_time(datetime.fromtimestamp(999))
+    time_service.use_simulated_epoch(999)
     processor = RegisterProcessor(registry, time_service)
 
     writer = Mock()
