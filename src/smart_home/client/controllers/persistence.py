@@ -50,11 +50,13 @@ def load_from_file(time_service: TimeService) -> DeviceStorage:
                 device_obj = Device(**dev_data)
                 
                 # put object into storage containter
-                dtype = device_obj.device_type.lower()
+                dtype = device_obj.device_type.lower().strip().replace(" ", "")
                 if dtype == "lamp":
                     storage.lamps[dev_id] = device_obj
-                elif dtype in ["thermometer", "sensor"]:
+                elif dtype == "thermometer":
                     storage.thermometers[dev_id] = device_obj
+                elif dtype == "sensor":
+                    storage.sensors[dev_id] = device_obj
                 elif dtype in ["ac", "airconditioning"]:
                     storage.ACs[dev_id] = device_obj
 

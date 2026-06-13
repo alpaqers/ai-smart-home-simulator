@@ -1,4 +1,4 @@
-from models.events import StorageEvent
+from ..models.events import StorageEvent
 from .persistence import save_event_to_file
 from ..models.device_storage import DeviceStorage
 from ..models.device import Device

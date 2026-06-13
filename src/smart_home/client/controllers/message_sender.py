@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from .connection_handler import ConnectionHandler
 from .device_id_allocator import next_device_id
-from .message_coder import decode_register_response, encode_register_request, encode_state_change
+from .message_coder import decode_register_response, encode_register_request
+from ..models.device import Device
 
 
 async def register_device(
@@ -31,4 +32,38 @@ async def register_device(
         return None
     except Exception as e:
         print(f"Critical connection error: {e}")
+        return None
+
+async def reregister_device(
+    handler: ConnectionHandler,
+    device: Device,
+) -> int | None:
+
+    if device.device_id is None:
+        return None
+
+    try:
+        payload_b64, _ = encode_register_request(
+            device.device_type,
+            device.capabilities,
+            device.device_state,
+            device.device_id,
+        )
+        print(f"Re-register request sent (ID: {device.device_id}, Type: {device.device_type})")
+
+        response_b64 = await handler.send_and_wait(payload_b64)
+        resp = decode_register_response(response_b64)
+
+        if resp.success:
+            print(f"Device re-registered successfully (ID: {resp.device_id} At {resp.timestamp})")
+            return resp.device_id
+
+        print(f"Re-registration failed: {resp.cause}")
+        return None
+
+    except TimeoutError:
+        print("Server failed to respond during re-registration")
+        return None
+    except Exception as e:
+        print(f"Critical connection error during re-registration: {e}")
         return None

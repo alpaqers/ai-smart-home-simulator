@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Dict
 
-from ..controllers.connection_handler import ConnectionHandler
 from .device import Device
 
 
@@ -12,4 +11,3 @@ class DeviceStorage:
     thermometers: Dict[int, Device] = field(default_factory=dict)
     sensors: Dict[int, Device] = field(default_factory=dict)
     ACs: Dict[int, Device] = field(default_factory=dict) #klima
-    connections: Dict[int, ConnectionHandler] = field(default_factory=dict)
