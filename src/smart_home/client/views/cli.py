@@ -7,7 +7,7 @@ from ..models.connection_storage import ConnectionStorage
 from ..controllers.logger_service import LoggerService, _show_logs
 from ..controllers.device_service import _show_devices, _change_device_state, _add_device
 from ..controllers.time_service import TimeService
-from ..controllers.TimeShiftSubhandler import handle_time_shift
+from ..controllers.time_shift_handler import handle_time_shift
 from ..controllers.connection_controller import all_connections
 from ..models.device_storage import DeviceStorage
 

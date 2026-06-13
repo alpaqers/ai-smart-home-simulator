@@ -7,6 +7,16 @@ mock_models.events = mock_events
 sys.modules["models"] = mock_models
 sys.modules["models.events"] = mock_events
 
+mock_protobuf = Mock()
+sys.modules["google"] = mock_protobuf
+sys.modules["google.protobuf"] = mock_protobuf
+sys.modules["google.protobuf.descriptor"] = mock_protobuf
+sys.modules["google.protobuf.internal"] = mock_protobuf
+
+mock_pb2 = Mock()
+sys.modules["smart_home.proto.v1"] = mock_pb2
+sys.modules["smart_home.proto.v1.message_pb2"] = mock_pb2
+
 import pytest
 
 from smart_home.client.controllers.connection_restore import restore_connections
