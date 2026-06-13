@@ -3,7 +3,7 @@ import asyncio
 import pytest
 
 from smart_home.server.event_bus import EventBus
-from smart_home.server.events import TickEvent
+from smart_home.server.events import AITickEvent, TickEvent
 from smart_home.server.tick_emitter import TickEmitter
 
 
@@ -64,3 +64,57 @@ def test_tick_emitter_rejects_non_positive_interval() -> None:
 
     with pytest.raises(ValueError, match="greater than 0"):
         TickEmitter(bus, interval_seconds=0)
+
+
+@pytest.mark.asyncio
+async def test_emit_once_publishes_ai_tick_when_interval_is_due() -> None:
+    bus = EventBus()
+    tick_events: list[TickEvent] = []
+    ai_tick_events: list[AITickEvent] = []
+    timestamps = iter(
+        [
+            0,
+            299,
+            300,
+            599,
+            600,
+        ]
+    )
+
+    async def handle_tick(event: TickEvent) -> None:
+        tick_events.append(event)
+
+    async def handle_ai_tick(event: AITickEvent) -> None:
+        ai_tick_events.append(event)
+
+    await bus.subscribe(TickEvent, handle_tick)
+    await bus.subscribe(AITickEvent, handle_ai_tick)
+    emitter = TickEmitter(
+        bus,
+        interval_seconds=300.0,
+        ai_tick_interval_seconds=600.0,
+        time_provider=lambda: next(timestamps),
+    )
+
+    await emitter.emit_once()
+    await emitter.emit_once()
+    await emitter.emit_once()
+    await emitter.emit_once()
+    await emitter.emit_once()
+
+    assert tick_events == [
+        TickEvent(timestamp=0),
+        TickEvent(timestamp=300),
+        TickEvent(timestamp=600),
+    ]
+    assert ai_tick_events == [
+        AITickEvent(timestamp=0),
+        AITickEvent(timestamp=600),
+    ]
+
+
+def test_tick_emitter_rejects_non_positive_ai_tick_interval() -> None:
+    bus = EventBus()
+
+    with pytest.raises(ValueError, match="AI tick interval"):
+        TickEmitter(bus, interval_seconds=1.0, ai_tick_interval_seconds=0)

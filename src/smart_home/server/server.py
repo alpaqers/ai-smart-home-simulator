@@ -1,7 +1,12 @@
 import asyncio
 
 from smart_home.server.connection_handler import handle_client
-from smart_home.common.config_loader import HOST, PORT, TICK_INTERVAL_SECONDS
+from smart_home.common.config_loader import (
+    AI_TICK_INTERVAL_SECONDS,
+    HOST,
+    PORT,
+    TICK_INTERVAL_SECONDS,
+)
 from smart_home.server.event_bus import EventBus
 from smart_home.server.scheduler import Scheduler
 from smart_home.server.tasks import TaskDatabase
@@ -50,6 +55,7 @@ async def start_server() -> None:
     tick_emitter = TickEmitter(
         bus,
         interval_seconds=TICK_INTERVAL_SECONDS,
+        ai_tick_interval_seconds=AI_TICK_INTERVAL_SECONDS,
         time_service=time_service,
     )
     tick_emitter.start()
