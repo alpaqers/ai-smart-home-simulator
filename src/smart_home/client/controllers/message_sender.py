@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from .connection_handler import ConnectionHandler
 from .device_id_allocator import next_device_id
-from .message_coder import decode_register_response, encode_register_request
 from ..models.device import Device
 from .message_coder import decode_register_response, encode_register_request
 from .time_service import TimeService
