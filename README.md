@@ -97,6 +97,37 @@ Run all tests:
 python -m pytest tests
 ```
 
+# AI Provider: Gemini
+
+The server can use Gemini through the Gemini API. Create a Gemini API key in
+Google AI Studio, then put it in a local `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```env
+AI_PROVIDER=gemini
+GEMINI_API_KEY=your-key
+GEMINI_MODEL=gemini-3.5-flash
+```
+
+Then start the server:
+
+```bash
+python src/main_server.py
+```
+
+The default AI config is in `config.toml`:
+
+```toml
+[ai]
+provider = "gemini"
+gemini_model = "gemini-3.5-flash"
+```
+
 Run only protobuf pytest tests:
 
 ```bash

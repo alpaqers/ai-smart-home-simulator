@@ -22,3 +22,10 @@ class DeviceStateHistory:
     async def history_for(self, device_id: int) -> list[StateChangeRecord]:
         async with self._lock:
             return list(self._by_device.get(device_id, []))
+
+    async def all_history(self) -> dict[int, list[StateChangeRecord]]:
+        async with self._lock:
+            return {
+                device_id: list(records)
+                for device_id, records in self._by_device.items()
+            }

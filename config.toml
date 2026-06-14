@@ -5,6 +5,11 @@ buffer_size = 1024
 tick_interval_seconds = 300.0
 ai_tick_interval_seconds = 18000.0
 
+[ai]
+provider = "gemini"
+endpoint = ""
+gemini_model = "gemini-3.5-flash"
+
 [client]
 server_host = "localhost"
 server_port = 9999

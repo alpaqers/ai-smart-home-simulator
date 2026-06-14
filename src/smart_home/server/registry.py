@@ -35,6 +35,10 @@ class DeviceRegistry:
         async with self._lock:
             return self._devices_by_id.get(device_id)
 
+    async def all_devices(self) -> list[RegisteredDevice]:
+        async with self._lock:
+            return list(self._devices_by_id.values())
+
     async def get_writer(self, device_id: int) -> StreamWriter | None:
         async with self._lock:
             entry = self._devices_by_id.get(device_id)

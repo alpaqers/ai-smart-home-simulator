@@ -2,21 +2,32 @@ import asyncio
 
 from smart_home.server.connection_handler import handle_client
 from smart_home.common.config_loader import (
+    AI_ENDPOINT,
+    AI_PROVIDER,
     AI_TICK_INTERVAL_SECONDS,
+    GEMINI_API_KEY,
+    GEMINI_MODEL,
     HOST,
     PORT,
     TICK_INTERVAL_SECONDS,
+)
+from smart_home.server.ai.transport import (
+    AITransport,
+    GeminiAITransport,
+    HttpAITransport,
 )
 from smart_home.server.event_bus import EventBus
 from smart_home.server.scheduler import Scheduler
 from smart_home.server.tasks import TaskDatabase
 from smart_home.server.events import (
+    AITickEvent,
     DeviceRegisterEvent,
     DeviceStateChangeRespEvent,
     DeviceStateChangeEvent,
     TimeShiftEvent,
 )
 from smart_home.server.processors import (
+    AutomationAIProcessor,
     RegisterProcessor,
     ResponseProcessor,
     StateChangeProcessor,
@@ -46,11 +57,22 @@ async def start_server() -> None:
     state_change_processor = StateChangeProcessor(registry, history, time_service)
     response_processor = ResponseProcessor()
     time_shift_processor = TimeShiftProcessor(time_service)
+    ai_transport = None
 
     await bus.subscribe(DeviceRegisterEvent, register_processor.handle)
     await bus.subscribe(DeviceStateChangeEvent, state_change_processor.handle)
     await bus.subscribe(DeviceStateChangeRespEvent, response_processor.handle)
     await bus.subscribe(TimeShiftEvent, time_shift_processor.handle)
+
+    ai_transport = _build_ai_transport()
+    if ai_transport is not None:
+        ai_processor = AutomationAIProcessor(
+            registry,
+            history,
+            ai_transport,
+            task_database,
+        )
+        await bus.subscribe(AITickEvent, ai_processor.handle)
 
     tick_emitter = TickEmitter(
         bus,
@@ -72,3 +94,29 @@ async def start_server() -> None:
             await server.serve_forever()
     finally:
         await tick_emitter.stop()
+        if ai_transport is not None:
+            await ai_transport.aclose()
+
+
+def _build_ai_transport() -> AITransport | None:
+    provider = AI_PROVIDER.lower()
+
+    if provider == "gemini":
+        if not GEMINI_API_KEY:
+            print("[AI] Gemini provider configured but GEMINI_API_KEY is missing")
+            return None
+        return GeminiAITransport(
+            GEMINI_API_KEY,
+            model=GEMINI_MODEL,
+        )
+
+    if provider == "http":
+        if not AI_ENDPOINT:
+            print("[AI] HTTP provider configured but AI_ENDPOINT is missing")
+            return None
+        return HttpAITransport(AI_ENDPOINT)
+
+    if AI_ENDPOINT:
+        return HttpAITransport(AI_ENDPOINT)
+
+    return None

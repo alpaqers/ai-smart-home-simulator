@@ -14,6 +14,14 @@ class AIPrompt:
 class AIResponse:
     text: str
     raw: dict[str, object]
+    automations: list["AutomationSuggestion"] = field(default_factory=list)
+
+
+@dataclass
+class AutomationSuggestion:
+    device_id: int
+    parameters: dict[str, str]
+    timestamp: int
 
 
 @dataclass
