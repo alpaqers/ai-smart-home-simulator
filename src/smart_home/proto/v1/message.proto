@@ -72,6 +72,16 @@ message TaskListResp {
 	optional string cause = 4;
 }
 
+message AITickRequest {
+}
+
+message AITickResp {
+	bool success = 1;
+	int64 timestamp = 2;
+	int32 tasks_added = 3;
+	optional string cause = 4;
+}
+
 message Envelope {
     oneof payload {
         DeviceStateChange device_state_change = 1;
@@ -83,5 +93,7 @@ message Envelope {
 		TimeShiftResp time_shift_resp = 7;
 		TaskListRequest task_list_request = 8;
 		TaskListResp task_list_resp = 9;
+		AITickRequest ai_tick_request = 10;
+		AITickResp ai_tick_resp = 11;
     }
 }

@@ -66,3 +66,9 @@ class TaskListRequestEvent:
     request_id: str
     writer: StreamWriter
     include_dispatched: bool
+
+
+@dataclass
+class AITickRequestEvent:
+    request_id: str
+    writer: StreamWriter

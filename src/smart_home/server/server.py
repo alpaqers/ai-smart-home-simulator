@@ -22,6 +22,7 @@ from smart_home.server.scheduler import Scheduler
 from smart_home.server.tasks import TaskDatabase
 from smart_home.server.events import (
     AITickEvent,
+    AITickRequestEvent,
     DeviceRegisterEvent,
     DeviceStateChangeRespEvent,
     DeviceStateChangeEvent,
@@ -31,6 +32,7 @@ from smart_home.server.events import (
     TimeShiftEvent,
 )
 from smart_home.server.processors import (
+    AITickTriggerProcessor,
     AutomationAIProcessor,
     RegisterProcessor,
     ResponseProcessor,
@@ -63,7 +65,7 @@ async def start_server() -> None:
     register_processor = RegisterProcessor(registry, time_service)
     state_change_processor = StateChangeProcessor(registry, history, time_service)
     response_processor = ResponseProcessor()
-    time_shift_processor = TimeShiftProcessor(time_service)
+    time_shift_processor = TimeShiftProcessor(time_service, event_bus=bus)
     task_list_processor = TaskListProcessor(task_database, time_service)
     state_update_sender = StateUpdateSender(registry, time_service)
     state_update_processor = StateUpdateProcessor(
@@ -82,6 +84,7 @@ async def start_server() -> None:
     await bus.subscribe(TickEvent, daily_task_reset.handle)
 
     ai_transport = _build_ai_transport()
+    ai_enabled = ai_transport is not None
     if ai_transport is not None:
         ai_processor = AutomationAIProcessor(
             registry,
@@ -90,6 +93,14 @@ async def start_server() -> None:
             task_database,
         )
         await bus.subscribe(AITickEvent, ai_processor.handle)
+
+    ai_tick_trigger = AITickTriggerProcessor(
+        bus,
+        task_database,
+        time_service,
+        ai_enabled=ai_enabled,
+    )
+    await bus.subscribe(AITickRequestEvent, ai_tick_trigger.handle)
 
     tick_emitter = TickEmitter(
         bus,

@@ -38,6 +38,10 @@ def build_envelope(message) -> bytes:
         envelope.task_list_request.CopyFrom(message)
     elif isinstance(message, message_pb2.TaskListResp):
         envelope.task_list_resp.CopyFrom(message)
+    elif isinstance(message, message_pb2.AITickRequest):
+        envelope.ai_tick_request.CopyFrom(message)
+    elif isinstance(message, message_pb2.AITickResp):
+        envelope.ai_tick_resp.CopyFrom(message)
     else:
         raise ValueError(f"Unsupported message type: {type(message).__name__}")
 
@@ -79,11 +83,13 @@ def encode_register_request(
     device_state: dict[str, str] | None = None,
     device_id: int = 0,
     time_service: TimeService | None = None,
+    *,
+    timestamp: int | None = None,
 ) -> tuple[str, message_pb2.DeviceRegisterReq]:
     req = message_pb2.DeviceRegisterReq()
     req.device_id = device_id
     req.device_type = device_type
-    req.timestamp = _timestamp(time_service)
+    req.timestamp = timestamp if timestamp is not None else _timestamp(time_service)
     req.capabilities.update(capabilities or {})
     req.device_state.update(device_state or {})
 
@@ -110,10 +116,12 @@ def encode_state_change(
     parameters: dict[str, str],
     device_type: str | int,
     time_service: TimeService | None = None,
+    *,
+    timestamp: int | None = None,
 ) -> str:
     msg = message_pb2.DeviceStateChange()
     msg.device_id = device_id
-    msg.timestamp = _timestamp(time_service)
+    msg.timestamp = timestamp if timestamp is not None else _timestamp(time_service)
     msg.device_type = _device_type_code(device_type)
     if parameters:
         msg.parameters.update(parameters)
@@ -150,6 +158,17 @@ def decode_task_list_response(response_b64: str) -> message_pb2.TaskListResp | N
     if envelope is None or envelope.WhichOneof("payload") != "task_list_resp":
         return None
     return envelope.task_list_resp
+
+
+def encode_ai_tick_request() -> str:
+    return _wrap_envelope(message_pb2.AITickRequest())
+
+
+def decode_ai_tick_response(response_b64: str) -> message_pb2.AITickResp | None:
+    envelope = _decode_envelope(response_b64)
+    if envelope is None or envelope.WhichOneof("payload") != "ai_tick_resp":
+        return None
+    return envelope.ai_tick_resp
 
 
 def decode_state_update_message(response_b64: str) -> message_pb2.DeviceStateUpdate | None:

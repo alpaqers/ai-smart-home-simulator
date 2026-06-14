@@ -9,6 +9,7 @@ from ..controllers.device_service import _show_devices, _change_device_state, _a
 from ..controllers.time_service import TimeService
 from ..controllers.TimeShiftSubhandler import handle_time_shift
 from ..controllers.connection_controller import all_connections
+from ..controllers.demo_service import load_demo_data, trigger_ai_tick
 from ..controllers.task_service import show_scheduler_tasks
 from ..models.device_storage import DeviceStorage
 
@@ -22,7 +23,9 @@ _MENU = """
 │  4) Show logs                │
 │  5) Time shift               │
 │  6) Show scheduler tasks     │
-│  7) Disconnect               │
+│  7) Load demo data           │
+│  8) Trigger AI analysis      │
+│  9) Disconnect               │
 └──────────────────────────────┘"""
 
 
@@ -81,6 +84,18 @@ async def run_cli(
             )
 
         elif choice == "7":
+            await load_demo_data(
+                device_storage,
+                connection_storage,
+                bus,
+                time_service,
+                logger,
+            )
+
+        elif choice == "8":
+            await trigger_ai_tick(time_service, logger)
+
+        elif choice == "9":
             logger.info("Client disconnecting.")
             break
 

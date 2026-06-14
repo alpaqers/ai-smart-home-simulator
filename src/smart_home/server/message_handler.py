@@ -3,6 +3,7 @@ from asyncio import StreamWriter
 
 from smart_home.proto.v1 import message_pb2
 from smart_home.server.events import (
+    AITickRequestEvent,
     DeviceStateChangeEvent,
     DeviceStateChangeRespEvent,
     DeviceRegisterEvent,
@@ -48,6 +49,10 @@ def build_envelope(message) -> bytes:
         envelope.task_list_request.CopyFrom(message)
     elif isinstance(message, message_pb2.TaskListResp):
         envelope.task_list_resp.CopyFrom(message)
+    elif isinstance(message, message_pb2.AITickRequest):
+        envelope.ai_tick_request.CopyFrom(message)
+    elif isinstance(message, message_pb2.AITickResp):
+        envelope.ai_tick_resp.CopyFrom(message)
     else:
         raise ValueError(f"Unsupported message type: {type(message).__name__}")
     
@@ -56,7 +61,7 @@ def build_envelope(message) -> bytes:
 
 def msg_to_event(
     envelope: message_pb2.Envelope, writer: StreamWriter, request_id: str = ""
-) -> DeviceStateChangeEvent | DeviceStateChangeRespEvent | DeviceRegisterEvent | TimeShiftEvent | TaskListRequestEvent | None:
+) -> DeviceStateChangeEvent | DeviceStateChangeRespEvent | DeviceRegisterEvent | TimeShiftEvent | TaskListRequestEvent | AITickRequestEvent | None:
     msg_type = envelope.WhichOneof("payload")
 
     if msg_type == "device_state_change":
@@ -109,6 +114,11 @@ def msg_to_event(
             writer=writer,
             include_dispatched=msg.include_dispatched,
         )
+    elif msg_type == "ai_tick_request":
+        return AITickRequestEvent(
+            request_id=request_id,
+            writer=writer,
+        )
     return None
 
 
@@ -142,6 +152,15 @@ def handle_message(envelope: message_pb2.Envelope):
         msg = envelope.task_list_resp
         status = "OK" if msg.success else "FAILED"
         print(f"Task list response: {status} - {len(msg.tasks)} tasks")
+
+    elif msg_type == "ai_tick_request":
+        print("AI tick request received")
+
+    elif msg_type == "ai_tick_resp":
+        msg = envelope.ai_tick_resp
+        status = "OK" if msg.success else "FAILED"
+        detail = msg.cause if msg.cause else f"tasks_added={msg.tasks_added}"
+        print(f"AI tick response: {status} - {detail}")
 
     else:
         print(f"Unknown message type: {msg_type}")
