@@ -5,6 +5,7 @@ __pycache__/
 .ruff_cache/
 .idea/
 .vscode/
+.env
 *_pb2.py
 *_pb2.pyi
 *_pb2_grpc.py

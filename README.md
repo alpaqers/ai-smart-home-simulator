@@ -63,6 +63,9 @@ Once the web frontend starts, open `http://127.0.0.1:8000` in a browser to add
 devices, view their live state, and update parameters. Override the bind
 address with the `WEB_HOST` / `WEB_PORT` environment variables if needed.
 
+In the CLI, use `Show scheduler tasks` to inspect automations currently stored
+in the server scheduler.
+
 Both frontends reuse the exact same client models and controllers; only the
 view layer differs (`src/smart_home/client/views/cli.py` vs.
 `src/smart_home/client/views/web/`).
@@ -95,6 +98,37 @@ Run all tests:
 
 ```bash
 python -m pytest tests
+```
+
+# AI Provider: Gemini
+
+The server can use Gemini through the Gemini API. Create a Gemini API key in
+Google AI Studio, then put it in a local `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```env
+AI_PROVIDER=gemini
+GEMINI_API_KEY=your-key
+GEMINI_MODEL=gemini-3.5-flash
+```
+
+Then start the server:
+
+```bash
+python src/main_server.py
+```
+
+The default AI config is in `config.toml`:
+
+```toml
+[ai]
+provider = "gemini"
+gemini_model = "gemini-3.5-flash"
 ```
 
 Run only protobuf pytest tests:

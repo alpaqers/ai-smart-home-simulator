@@ -7,6 +7,12 @@ from smart_home.proto.v1 import message_pb2
 class TickEvent:
     timestamp: int
 
+
+@dataclass
+class AITickEvent:
+    timestamp: int
+
+
 @dataclass
 class TaskDueEvent:
     task_id: int
@@ -53,3 +59,10 @@ class TimeShiftEvent:
     hour: int
     minute: int
     second: int
+
+
+@dataclass
+class TaskListRequestEvent:
+    request_id: str
+    writer: StreamWriter
+    include_dispatched: bool

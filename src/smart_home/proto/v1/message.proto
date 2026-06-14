@@ -53,6 +53,25 @@ message TimeShiftResp {
     optional string cause = 3;
 }
 
+message TaskListRequest {
+	bool include_dispatched = 1;
+}
+
+message ScheduledTaskInfo {
+	uint64 task_id = 1;
+	int32 device_id = 2;
+	map<string, string> parameters = 3;
+	int64 time = 4;
+	bool dispatched = 5;
+}
+
+message TaskListResp {
+	bool success = 1;
+	int64 timestamp = 2;
+	repeated ScheduledTaskInfo tasks = 3;
+	optional string cause = 4;
+}
+
 message Envelope {
     oneof payload {
         DeviceStateChange device_state_change = 1;
@@ -62,5 +81,7 @@ message Envelope {
         DeviceRegisterResp device_register_resp = 5;
 		TimeShiftRequest time_shift_request = 6;
 		TimeShiftResp time_shift_resp = 7;
+		TaskListRequest task_list_request = 8;
+		TaskListResp task_list_resp = 9;
     }
 }
