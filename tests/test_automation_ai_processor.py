@@ -73,6 +73,7 @@ async def test_automation_ai_processor_adds_task_from_timestamp() -> None:
     assert tasks[0].parameters == {"power": "on"}
     assert tasks[0].time == 1704132000
     assert transport.prompts
+    assert "current_time" in transport.prompts[0].messages[1]["content"]
 
 
 @pytest.mark.asyncio
@@ -144,3 +145,43 @@ async def test_automation_ai_processor_skips_unregistered_device() -> None:
     await processor.handle(AITickEvent(timestamp=100))
 
     assert await task_database.get_due_tasks(200) == []
+
+
+@pytest.mark.asyncio
+async def test_automation_ai_processor_skips_past_automation() -> None:
+    registry = DeviceRegistry()
+    history = DeviceStateHistory()
+    task_database = TaskDatabase()
+    transport = FakeAITransport(
+        {
+            "automations": [
+                {
+                    "device_id": 1,
+                    "parameters": {"power": "on"},
+                    "timestamp": 99,
+                }
+            ],
+        }
+    )
+
+    await registry.register(
+        RegisteredDevice(
+            device_id=1,
+            writer=Mock(),
+            device_type="lamp",
+            capabilities={"power": "on/off"},
+            device_state={"power": "off"},
+            timestamp=1,
+        )
+    )
+
+    processor = AutomationAIProcessor(
+        registry,
+        history,
+        transport,
+        task_database,
+    )
+
+    await processor.handle(AITickEvent(timestamp=100))
+
+    assert await task_database.list_tasks() == []

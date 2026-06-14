@@ -34,6 +34,10 @@ def build_envelope(message) -> bytes:
         envelope.time_shift_request.CopyFrom(message)
     elif isinstance(message, message_pb2.TimeShiftResp):
         envelope.time_shift_resp.CopyFrom(message)
+    elif isinstance(message, message_pb2.TaskListRequest):
+        envelope.task_list_request.CopyFrom(message)
+    elif isinstance(message, message_pb2.TaskListResp):
+        envelope.task_list_resp.CopyFrom(message)
     else:
         raise ValueError(f"Unsupported message type: {type(message).__name__}")
 
@@ -133,6 +137,19 @@ def decode_time_shift_response(response_b64: str) -> message_pb2.TimeShiftResp |
     if envelope is None or envelope.WhichOneof("payload") != "time_shift_resp":
         return None
     return envelope.time_shift_resp
+
+
+def encode_task_list_request(include_dispatched: bool = True) -> str:
+    msg = message_pb2.TaskListRequest()
+    msg.include_dispatched = include_dispatched
+    return _wrap_envelope(msg)
+
+
+def decode_task_list_response(response_b64: str) -> message_pb2.TaskListResp | None:
+    envelope = _decode_envelope(response_b64)
+    if envelope is None or envelope.WhichOneof("payload") != "task_list_resp":
+        return None
+    return envelope.task_list_resp
 
 
 def decode_state_update_message(response_b64: str) -> message_pb2.DeviceStateUpdate | None:

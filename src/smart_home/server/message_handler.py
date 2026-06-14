@@ -6,6 +6,7 @@ from smart_home.server.events import (
     DeviceStateChangeEvent,
     DeviceStateChangeRespEvent,
     DeviceRegisterEvent,
+    TaskListRequestEvent,
     TimeShiftEvent,
 )
 
@@ -43,6 +44,10 @@ def build_envelope(message) -> bytes:
         envelope.time_shift_request.CopyFrom(message)
     elif isinstance(message, message_pb2.TimeShiftResp):
         envelope.time_shift_resp.CopyFrom(message)
+    elif isinstance(message, message_pb2.TaskListRequest):
+        envelope.task_list_request.CopyFrom(message)
+    elif isinstance(message, message_pb2.TaskListResp):
+        envelope.task_list_resp.CopyFrom(message)
     else:
         raise ValueError(f"Unsupported message type: {type(message).__name__}")
     
@@ -51,7 +56,7 @@ def build_envelope(message) -> bytes:
 
 def msg_to_event(
     envelope: message_pb2.Envelope, writer: StreamWriter, request_id: str = ""
-) -> DeviceStateChangeEvent | DeviceStateChangeRespEvent | DeviceRegisterEvent | TimeShiftEvent | None:
+) -> DeviceStateChangeEvent | DeviceStateChangeRespEvent | DeviceRegisterEvent | TimeShiftEvent | TaskListRequestEvent | None:
     msg_type = envelope.WhichOneof("payload")
 
     if msg_type == "device_state_change":
@@ -97,6 +102,13 @@ def msg_to_event(
             minute=msg.minute,
             second=msg.second,
         )
+    elif msg_type == "task_list_request":
+        msg = envelope.task_list_request
+        return TaskListRequestEvent(
+            request_id=request_id,
+            writer=writer,
+            include_dispatched=msg.include_dispatched,
+        )
     return None
 
 
@@ -121,6 +133,15 @@ def handle_message(envelope: message_pb2.Envelope):
         status = "OK" if msg.success else "FAILED"
         detail = msg.cause if msg.cause else str(msg.timestamp)
         print(f"Time shift response: {status} - {detail}")
+
+    elif msg_type == "task_list_request":
+        msg = envelope.task_list_request
+        print(f"Task list request: include_dispatched={msg.include_dispatched}")
+
+    elif msg_type == "task_list_resp":
+        msg = envelope.task_list_resp
+        status = "OK" if msg.success else "FAILED"
+        print(f"Task list response: {status} - {len(msg.tasks)} tasks")
 
     else:
         print(f"Unknown message type: {msg_type}")

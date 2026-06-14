@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from smart_home.proto.v1 import message_pb2
-from smart_home.server.events import DeviceRegisterEvent
+from smart_home.server.events import DeviceRegisterEvent, TaskListRequestEvent
 from smart_home.server.message_handler import msg_to_event, parse_envelope, decode_wire_message
 from smart_home.server.processors import RegisterProcessor
 from smart_home.server.registry import DeviceRegistry, RegisteredDevice
@@ -33,6 +33,20 @@ def test_msg_to_event_maps_device_register_req() -> None:
     assert event.capabilities == {"mode": "heat", "fan": "auto"}
     assert event.device_state == {"temperature": "21", "humidity": "45"}
     assert event.timestamp == 123456789
+
+
+def test_msg_to_event_maps_task_list_request() -> None:
+    writer = Mock()
+
+    envelope = message_pb2.Envelope()
+    envelope.task_list_request.include_dispatched = False
+
+    event = msg_to_event(envelope, writer, "req-tasks")
+
+    assert isinstance(event, TaskListRequestEvent)
+    assert event.request_id == "req-tasks"
+    assert event.writer is writer
+    assert event.include_dispatched is False
 
 
 @pytest.mark.asyncio

@@ -68,7 +68,12 @@ class GeminiAITransport(AITransport):
             self._endpoint,
             json=self._build_payload(prompt),
         )
-        response.raise_for_status()
+        status_code = getattr(response, "status_code", 200)
+        if status_code >= 400:
+            body = getattr(response, "text", "")[:1000]
+            raise RuntimeError(
+                f"Gemini request failed with HTTP {status_code}: {body}"
+            )
         return self._extract_json_response(response.json())
 
     async def aclose(self) -> None:
@@ -95,11 +100,7 @@ class GeminiAITransport(AITransport):
                 }
             ],
             "generationConfig": {
-                "responseFormat": {
-                    "text": {
-                        "mimeType": "application/json",
-                    }
-                }
+                "responseMimeType": "application/json",
             },
         }
 

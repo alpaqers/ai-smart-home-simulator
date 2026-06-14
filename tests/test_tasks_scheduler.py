@@ -176,3 +176,64 @@ async def test_claim_many() -> None:
     assert task_1.dispatched is True
     assert task_2.dispatched is True
     assert task_3.dispatched is False
+
+
+@pytest.mark.asyncio
+async def test_list_tasks_can_include_or_skip_dispatched_tasks() -> None:
+    task_database = TaskDatabase()
+
+    await task_database.add_task(
+        ScheduledTask(
+            task_id=2,
+            device_id=11,
+            parameters={"temperature": "22"},
+            time=120,
+        )
+    )
+    await task_database.add_task(
+        ScheduledTask(
+            task_id=1,
+            device_id=10,
+            parameters={"power": "on"},
+            time=100,
+        )
+    )
+
+    await task_database.claim_due_task_ids(timestamp=100)
+
+    all_tasks = await task_database.list_tasks()
+    pending_tasks = await task_database.list_tasks(include_dispatched=False)
+
+    assert [task.task_id for task in all_tasks] == [1, 2]
+    assert all_tasks[0].dispatched is True
+    assert [task.task_id for task in pending_tasks] == [2]
+
+
+@pytest.mark.asyncio
+async def test_reset_dispatched_flags_marks_tasks_pending_again() -> None:
+    task_database = TaskDatabase()
+
+    await task_database.add_task(
+        ScheduledTask(
+            task_id=1,
+            device_id=10,
+            parameters={"power": "on"},
+            time=100,
+        )
+    )
+    await task_database.add_task(
+        ScheduledTask(
+            task_id=2,
+            device_id=11,
+            parameters={"power": "off"},
+            time=200,
+        )
+    )
+
+    await task_database.claim_due_task_ids(timestamp=100)
+
+    reset_count = await task_database.reset_dispatched_flags()
+
+    assert reset_count == 1
+    tasks = await task_database.list_tasks()
+    assert [task.dispatched for task in tasks] == [False, False]

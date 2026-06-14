@@ -9,6 +9,7 @@ from ..controllers.device_service import _show_devices, _change_device_state, _a
 from ..controllers.time_service import TimeService
 from ..controllers.TimeShiftSubhandler import handle_time_shift
 from ..controllers.connection_controller import all_connections
+from ..controllers.task_service import show_scheduler_tasks
 from ..models.device_storage import DeviceStorage
 
 _MENU = """
@@ -20,7 +21,8 @@ _MENU = """
 │  3) Update device state      │
 │  4) Show logs                │
 │  5) Time shift               │
-│  6) Disconnect               │
+│  6) Show scheduler tasks     │
+│  7) Disconnect               │
 └──────────────────────────────┘"""
 
 
@@ -72,8 +74,23 @@ async def run_cli(
                 await handle_time_shift(time_service, connections[0])
 
         elif choice == "6":
+            include_dispatched = await _ask_include_dispatched()
+            await show_scheduler_tasks(
+                logger,
+                include_dispatched=include_dispatched,
+            )
+
+        elif choice == "7":
             logger.info("Client disconnecting.")
             break
 
         else:
             print("  Invalid choice — try again.")
+
+
+async def _ask_include_dispatched() -> bool:
+    choice = await asyncio.to_thread(
+        input,
+        "Show dispatched tasks too? (y/n): ",
+    )
+    return choice.strip().lower() == "y"

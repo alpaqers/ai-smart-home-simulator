@@ -63,6 +63,9 @@ Once the web frontend starts, open `http://127.0.0.1:8000` in a browser to add
 devices, view their live state, and update parameters. Override the bind
 address with the `WEB_HOST` / `WEB_PORT` environment variables if needed.
 
+In the CLI, use `Show scheduler tasks` to inspect automations currently stored
+in the server scheduler.
+
 Both frontends reuse the exact same client models and controllers; only the
 view layer differs (`src/smart_home/client/views/cli.py` vs.
 `src/smart_home/client/views/web/`).

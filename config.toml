@@ -3,7 +3,7 @@ host = "127.0.0.1"
 port = 9999
 buffer_size = 1024
 tick_interval_seconds = 300.0
-ai_tick_interval_seconds = 18000.0
+ai_tick_interval_seconds = 432000.0
 
 [ai]
 provider = "gemini"

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import datetime, timezone
 from typing import Any
 
 from smart_home.server.ai.transport import AITransport
@@ -28,14 +29,19 @@ class AutomationAIProcessor(BaseAIProcessor):
     ) -> None:
         super().__init__(registry, history, transport)
         self._task_database = task_database
+        self._current_tick_timestamp: int | None = None
 
     async def handle(self, event: AITickEvent) -> None:
+        self._current_tick_timestamp = event.timestamp
         try:
             response = await self.run()
             added_count = 0
 
             for automation in response.automations:
                 if not await self._registry.is_registered(automation.device_id):
+                    continue
+
+                if automation.timestamp <= event.timestamp:
                     continue
 
                 task = ScheduledTask(
@@ -55,6 +61,8 @@ class AutomationAIProcessor(BaseAIProcessor):
             print(f"[AutomationAIProcessor] Added {added_count} automation tasks")
         except Exception as e:
             print(f"[AutomationAIProcessor] Failed to process AI tick: {e}")
+        finally:
+            self._current_tick_timestamp = None
 
     async def gather_context(self) -> AIContext:
         devices = await self._registry.all_devices()
@@ -62,7 +70,13 @@ class AutomationAIProcessor(BaseAIProcessor):
         return AIContext(devices=devices, history=history)
 
     def build_prompt(self, context: AIContext) -> AIPrompt:
+        current_timestamp = self._current_tick_timestamp
         payload = {
+            "current_time": (
+                _timestamp_to_prompt_data(current_timestamp)
+                if current_timestamp is not None
+                else None
+            ),
             "devices": [_device_to_prompt_data(device) for device in context.devices],
             "history": {
                 str(device_id): [
@@ -79,7 +93,9 @@ class AutomationAIProcessor(BaseAIProcessor):
                     "role": "system",
                     "content": (
                         "You analyze smart-home device state history and propose "
-                        "useful automations. Return JSON only."
+                        "useful automations. Return JSON only. Prefer simple "
+                        "automations for clear recurring patterns, and ignore "
+                        "noisy or inconsistent behavior."
                     ),
                 },
                 {
@@ -88,7 +104,10 @@ class AutomationAIProcessor(BaseAIProcessor):
                         "Suggest automations based on recurring device usage. "
                         "Return an object with an automations array. Each automation "
                         "must contain device_id, parameters, and timestamp as a "
-                        "future unix timestamp in seconds. "
+                        "future unix timestamp in seconds, strictly after "
+                        "current_time.timestamp. For an on/off pattern, return "
+                        "separate automations for the on and off actions. "
+                        "Return at most 5 automations. "
                         f"Data: {json.dumps(payload, sort_keys=True)}"
                     ),
                 },
@@ -174,6 +193,18 @@ def _record_to_prompt_data(record: StateChangeRecord) -> dict[str, object]:
     return {
         "device_id": record.device_id,
         "timestamp": record.timestamp,
+        "timestamp_iso": _timestamp_to_iso(record.timestamp),
         "parameters": dict(record.parameters),
         "device_type": record.device_type,
     }
+
+
+def _timestamp_to_prompt_data(timestamp: int) -> dict[str, object]:
+    return {
+        "timestamp": timestamp,
+        "timestamp_iso": _timestamp_to_iso(timestamp),
+    }
+
+
+def _timestamp_to_iso(timestamp: int) -> str:
+    return datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat()

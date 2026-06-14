@@ -59,3 +59,10 @@ class TimeShiftEvent:
     hour: int
     minute: int
     second: int
+
+
+@dataclass
+class TaskListRequestEvent:
+    request_id: str
+    writer: StreamWriter
+    include_dispatched: bool
