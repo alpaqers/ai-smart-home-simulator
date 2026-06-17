@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+.idea/
+.vscode/
+.env
+*_pb2.py
+*_pb2.pyi
+*_pb2_grpc.py
+.DS_Store
+.agents
+.codex

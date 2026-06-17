@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package smarthome.v1;
+
+message DeviceStateChange {
+	int32 device_id = 1;
+	int64 timestamp = 2;
+	map<string, string> parameters = 3;
+	int32 device_type = 4;
+}
+
+message DeviceStateUpdate {
+	int32 device_id = 1;
+	int64 timestamp = 2;
+	int32 command_type = 3;
+	map<string, string> parameters = 4;
+}
+
+message DeviceStateChangeResp {
+	int32 device_id = 1;
+	int64 timestamp = 2;
+	bool success = 3;
+	string message = 4;
+}
+
+message DeviceRegisterReq {
+	int32 device_id = 1;
+	string device_type = 2;
+	map<string, string> capabilities = 3;
+	map<string, string> device_state = 4;
+	int64 timestamp = 5;
+}
+
+message DeviceRegisterResp {
+	int32 device_id = 1;
+	bool success = 2;
+	int64 timestamp = 3;
+	optional string cause = 4;
+}
+
+message TimeShiftRequest {
+    int32 year = 1;
+    int32 month = 2;
+    int32 day = 3;
+    int32 hour = 4;
+    int32 minute = 5;
+    int32 second = 6;
+}
+
+message TimeShiftResp {
+    bool success = 1;
+    int64 timestamp = 2;
+    optional string cause = 3;
+}
+
+message TaskListRequest {
+	bool include_dispatched = 1;
+}
+
+message ScheduledTaskInfo {
+	uint64 task_id = 1;
+	int32 device_id = 2;
+	map<string, string> parameters = 3;
+	int64 time = 4;
+	bool dispatched = 5;
+}
+
+message TaskListResp {
+	bool success = 1;
+	int64 timestamp = 2;
+	repeated ScheduledTaskInfo tasks = 3;
+	optional string cause = 4;
+}
+
+message Envelope {
+    oneof payload {
+        DeviceStateChange device_state_change = 1;
+        DeviceStateUpdate device_state_update = 2;
+        DeviceStateChangeResp device_state_change_resp = 3;
+        DeviceRegisterReq device_register_req = 4;
+        DeviceRegisterResp device_register_resp = 5;
+		TimeShiftRequest time_shift_request = 6;
+		TimeShiftResp time_shift_resp = 7;
+		TaskListRequest task_list_request = 8;
+		TaskListResp task_list_resp = 9;
+    }
+}

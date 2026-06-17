@@ -1,2 +1,192 @@
-# ai-smart-home-simulator
-AI-powered smart home server written in Python that automates processes based on data from simulated IoT device clients. Student group project for Nokia Corporation.
+# AI Smart Home Simulator
+
+Minimal TCP client/server simulator built with `asyncio`.
+
+At this stage, the project supports basic TCP communication between client and server.
+The server listens on port `9999`, and settings can be changed in `config.toml`.
+
+---
+
+# Requirements
+
+- Python 3.11+
+- Linux or Windows
+- Docker (optional, for containerized run)
+
+---
+
+# Local Setup (venv)
+
+### Linux / macOS
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python src/main_server.py
+python src/main_client.py
+```
+
+### Windows
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python src/main_server.py
+python src/main_client.py
+```
+
+Deactivate venv:
+
+```bash
+deactivate
+```
+
+---
+
+# Frontends (CLI or Web)
+
+The client supports two interchangeable frontends. The default is the CLI.
+
+Start the server first, then pick a frontend for the client:
+
+```bash
+# CLI (default)
+python src/main_client.py
+
+# Web frontend (Django)
+python src/main_client.py --frontend web
+```
+
+Once the web frontend starts, open `http://127.0.0.1:8000` in a browser to add
+devices, view their live state, and update parameters. Override the bind
+address with the `WEB_HOST` / `WEB_PORT` environment variables if needed.
+
+In the CLI, use `Show scheduler tasks` to inspect automations currently stored
+in the server scheduler.
+
+Both frontends reuse the exact same client models and controllers; only the
+view layer differs (`src/smart_home/client/views/cli.py` vs.
+`src/smart_home/client/views/web/`).
+
+---
+
+# Regenerate Protobuf (after changing `message.proto`)
+
+```bash
+python -m grpc_tools.protoc -I src --python_out=src src/smart_home/proto/v1/message.proto
+```
+
+If needed, install the generator first:
+
+```bash
+pip install grpcio-tools
+```
+
+---
+
+# Testing
+
+If needed, install pytest first:
+
+```bash
+pip install pytest
+```
+
+Run all tests:
+
+```bash
+python -m pytest tests
+```
+
+# AI Provider: Gemini
+
+The server can use Gemini through the Gemini API. Create a Gemini API key in
+Google AI Studio, then put it in a local `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```env
+AI_PROVIDER=gemini
+GEMINI_API_KEY=your-key
+GEMINI_MODEL=gemini-3.5-flash
+```
+
+Then start the server:
+
+```bash
+python src/main_server.py
+```
+
+The default AI config is in `config.toml`:
+
+```toml
+[ai]
+provider = "gemini"
+gemini_model = "gemini-3.5-flash"
+```
+
+Run only protobuf pytest tests:
+
+```bash
+python -m pytest tests/test_protobuf_pytest.py
+```
+
+Run protobuf serialization script test:
+
+```bash
+python tests/test_protobuf.py
+```
+
+---
+
+# Docker: Start Server + Client
+
+1. Start only the server in background:
+
+```bash
+docker compose up -d server
+```
+
+2. Start client session:
+
+```bash
+docker compose run --rm client
+```
+
+3. In the client prompt (`Client >`), type your message and press Enter.
+
+4. (Optional) In another terminal, watch server logs:
+
+```bash
+docker compose logs -f server
+```
+
+5. Stop everything:
+
+```bash
+docker compose down
+```
+
+# Setup script
+
+The root setup scripts can run the Docker automatically.
+
+Linux, macOS, WSL, or Git Bash:
+
+```bash
+bash setup.sh
+```
+
+Windows PowerShell:
+
+```powershell
+.\setup.ps1
+```
+
+If Docker is not running, the scripts wait and retry until Docker becomes available.
