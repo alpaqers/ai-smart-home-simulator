@@ -16,6 +16,9 @@ from itertools import count
 
 _counter = count(0)
 
+def seed_device_id_allocator(start: int) -> None:
+    global _counter
+    _counter = count(start)
 
 def next_device_id() -> int:
     return next(_counter)

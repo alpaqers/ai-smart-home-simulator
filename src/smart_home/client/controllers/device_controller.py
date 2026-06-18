@@ -1,3 +1,5 @@
+from ..models.events import StorageEvent
+from .persistence import save_event_to_file
 from ..models.device_storage import DeviceStorage
 from ..models.device import Device
 
@@ -42,6 +44,14 @@ def save_device(storage: DeviceStorage, device: Device) -> tuple[bool, str]:
     else:
         return False, f"Unknown device type: {device.device_type}"
 
+    from dataclasses import asdict
+    event = StorageEvent(
+        event_type="device_registration",
+        device_id=device.device_id,
+        device_data=asdict(device)
+    )
+    save_event_to_file(event)
+
     return True, f"Device {device.device_id} saved to {dtype} storage."
 
 
@@ -49,6 +59,15 @@ def update_device_state(storage: DeviceStorage, device_id: int, new_state: dict[
     for container in [storage.lamps, storage.thermometers, storage.sensors, storage.ACs]:
         if device_id in container:
             container[device_id].device_state.update(new_state)
+
+            from dataclasses import asdict
+            event = StorageEvent(
+                event_type="state_update",
+                device_id=device_id,
+                device_data=asdict(container[device_id])
+            )
+            save_event_to_file(event)
+
             return True, f"Device {device_id} state updated."
 
     return False, f"Device {device_id} not found in storage."
